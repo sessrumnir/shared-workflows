@@ -40,5 +40,6 @@ Inputs and secrets are declared at the top of each workflow.
 ## Development
 
 ```sh
-make lint test
+make lint test   # every tool in its own pinned image; needs Docker
+make hooks       # run make lint before every push
 ```
