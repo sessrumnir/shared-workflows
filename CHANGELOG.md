@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.18.1](https://github.com/sessrumnir/shared-workflows/compare/v0.18.0...v0.18.1) (2026-10-28)
+
+
+### Bug Fixes
+
+* **image-build:** pass the image digest as a checked step output ([#8](https://github.com/sessrumnir/shared-workflows/issues/8)) ([b414e89](https://github.com/sessrumnir/shared-workflows/commit/b414e893775c3747cc5112c9db78060b7ed034ae))
+
 ## [0.18.0](https://github.com/sessrumnir/shared-workflows/compare/v0.17.0...v0.18.0) (2026-10-28)
 
 
