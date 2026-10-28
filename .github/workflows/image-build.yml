@@ -89,27 +89,42 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Log in to the registry
+      # The registry login lives in a throwaway Docker config that is gone before any repository
+      # code runs.
+      - name: Lint the Containerfile
         env:
           TOKEN: ${{ github.token }}
           ACTOR: ${{ github.actor }}
-        run: printf '%s' "${TOKEN}" | docker login ghcr.io --username "${ACTOR}" --password-stdin
-      - name: Lint the Containerfile
-        env:
           HADOLINT: ghcr.io/${{ github.repository_owner }}/hadolint@sha256:3695882bc1e6e5bd6bb40d11a771936bb5873286e5ee4b5a1874e61acf4139ec # stable
-        run: >-
-          docker run --rm --interactive --volume "${PWD}/.hadolint.yaml:/hadolint.yaml:ro"
-          "${HADOLINT}" --config /hadolint.yaml - < "${DIR}/Containerfile"
+        run: |
+          set -euo pipefail
+          login=$(mktemp -d)
+          trap 'rm -rf "${login}"' EXIT
+          printf '%s' "${TOKEN}" | docker --config "${login}" login ghcr.io --username "${ACTOR}" --password-stdin
+          docker --config "${login}" pull --quiet "${HADOLINT}"
+          rm -rf "${login}"
+          docker run --rm --interactive --volume "${PWD}/.hadolint.yaml:/hadolint.yaml:ro" \
+            "${HADOLINT}" --config /hadolint.yaml - < "${DIR}/Containerfile"
       - name: Connect to the cluster's rootless BuildKit
         run: >-
           docker buildx create --name ci --use --driver remote
           --driver-opt "cacert=${HOME}/.buildkit/ca.crt,cert=${HOME}/.buildkit/tls.crt,key=${HOME}/.buildkit/tls.key,servername=buildkitd.buildkit.svc"
           "${BUILDKIT_HOST}"
+      # An image that will be pushed is built without the shared BuildKit cache and with fresh base
+      # images, so nothing a pull request build left in the cache can reach it.
       - name: Build
-        run: >-
-          docker buildx build --file "${DIR}/Containerfile"
-          --output "type=docker,dest=${RUNNER_TEMP}/image.tar" --tag "${REF}:stable"
-          "${DIR}"
+        env:
+          FRESH: >-
+            ${{ inputs.push && github.ref == 'refs/heads/main'
+            && contains(fromJSON('["push", "schedule", "workflow_dispatch"]'), github.event_name) }}
+        run: |
+          set -euo pipefail
+          fresh=()
+          if [ "${FRESH}" = true ]; then
+            fresh=(--no-cache --pull)
+          fi
+          docker buildx build "${fresh[@]}" --file "${DIR}/Containerfile" \
+            --output "type=docker,dest=${RUNNER_TEMP}/image.tar" --tag "${REF}:stable" "${DIR}"
       - name: Load and test
         run: |
           set -euo pipefail
