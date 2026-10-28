@@ -16,7 +16,12 @@ EOF
 
 repo=${work}/repo
 git init -q -b main "${repo}"
-git -C "${repo}" -c user.name=t -c user.email=t@example.com commit -q --allow-empty -m base
+for scenario in default frr kea_dhcp kea_dhcp_container; do
+  mkdir -p "${repo}/extensions/molecule/${scenario}"
+  echo --- > "${repo}/extensions/molecule/${scenario}/molecule.yml"
+done
+git -C "${repo}" add -A
+git -C "${repo}" -c user.name=t -c user.email=t@example.com commit -q -m base
 base=$(git -C "${repo}" rev-parse HEAD)
 scenarios='["default","frr","kea_dhcp","kea_dhcp_container"]'
 failures=0
@@ -33,10 +38,14 @@ check() {
     git -C "${repo}" add -A
     git -C "${repo}" -c user.name=t -c user.email=t@example.com commit -q -m change
   fi
-  local got
-  got=$(cd "${repo}" && MODE=${mode} DRAFT=${draft} HEAD_REF=${ref} BASE=${base} \
-    HEAD=$(git rev-parse HEAD) SCENARIOS=${scenarios} GITHUB_OUTPUT=/dev/null \
-    bash "${work}/select.sh" | tail -n 1)
+  local got pr_base=${base} pr_head
+  pr_head=$(git -C "${repo}" rev-parse HEAD)
+  if [ "${ref}" = push ]; then
+    pr_base='' pr_head=''
+  fi
+  got=$(cd "${repo}" && MODE=${mode} DRAFT=${draft} HEAD_REF=${ref} BASE=${pr_base} \
+    HEAD=${pr_head} SCENARIOS=${scenarios} GITHUB_OUTPUT=/dev/null \
+    bash "${work}/select.sh" 2>&1 | tail -n 1) || true
   if [ "${got}" = "${expected}" ]; then
     echo "ok    ${name}"
   else
@@ -60,9 +69,19 @@ check "shared Molecule files" "${all}" auto false feat/x extensions/molecule/sha
 check "plugin" "${all}" auto false feat/x plugins/filter/x.py
 check "role and plugin" "${all}" auto false feat/x roles/frr/a plugins/filter/x.py
 check "role without a scenario" 'mode: full, scenarios: ["default"]' auto false feat/x roles/pki/tasks/main.yml
+check "auto without pull request SHAs" "${all}" auto false push roles/frr/tasks/main.yml
+listed=${scenarios}
+scenarios='["default","nope"]'
+check "a listed scenario that does not exist" "::error::molecule-scenarios names nope, which has no extensions/molecule/nope/molecule.yml" full "" ""
+scenarios='["default","default"]'
+check "a list with a duplicate" "::error::molecule-scenarios must be a JSON list of up to 50 distinct scenario names" full "" ""
+scenarios='["../x"]'
+check "a list with a path" "::error::molecule-scenarios must be a JSON list of up to 50 distinct scenario names" full "" ""
+scenarios=${listed}
 
 # Without a list, every scenario that runs on the shared Docker driver.
 git -C "${repo}" checkout -q -B discover "${base}"
+rm -r "${repo}/extensions/molecule/kea_dhcp" "${repo}/extensions/molecule/kea_dhcp_container"
 for scenario in default frr vm; do
   mkdir -p "${repo}/extensions/molecule/${scenario}"
   echo --- > "${repo}/extensions/molecule/${scenario}/molecule.yml"

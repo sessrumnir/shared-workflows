@@ -70,6 +70,16 @@ jobs:
           set -euo pipefail
           if [ -n "${SCENARIOS}" ]; then
             all=$(jq -c . <<< "${SCENARIOS}")
+            if ! jq -e 'type == "array" and length <= 50 and all(.[]; type == "string" and test("^[a-z0-9_-]+$")) and length == (unique | length)' <<< "${all}" > /dev/null; then
+              echo "::error::molecule-scenarios must be a JSON list of up to 50 distinct scenario names"
+              exit 1
+            fi
+            for scenario in $(jq -r '.[]' <<< "${all}"); do
+              if [ ! -f "extensions/molecule/${scenario}/molecule.yml" ]; then
+                echo "::error::molecule-scenarios names ${scenario}, which has no extensions/molecule/${scenario}/molecule.yml"
+                exit 1
+              fi
+            done
           else
             all=$(for file in extensions/molecule/*/molecule.yml; do
                     if [ -f "${file}" ] && ! grep -q '^driver:' "${file}"; then
@@ -128,6 +138,8 @@ jobs:
             auto)
               if [ "${DRAFT}" = true ]; then
                 emit skip '[]'
+              elif [ -z "${BASE}" ] || [ -z "${HEAD}" ]; then
+                emit full "${all}"
               elif [[ ${HEAD_REF} == release-please--* ]]; then
                 emit lint '[]'
               else
@@ -172,22 +184,43 @@ jobs:
           private-key: ${{ secrets.app-private-key }}
           repositories: ${{ inputs.private-collections }}
           permission-contents: read
-      - &clone-with-token
-        name: Clone sessrumnir collections with the App token
+      # Clones the private collections into local mirrors before any repository code runs and
+      # revokes the token on the way out, so make and ansible-galaxy read the mirrors with no
+      # credential in reach. The action's own revoke at the end of the job then only warns.
+      - &mirror-private-collections
+        name: Mirror the private collections, then revoke the token
         if: steps.app.outputs.token != ''
         env:
           APP_TOKEN: ${{ steps.app.outputs.token }}
-        run: >-
-          git config --global
-          url."https://x-access-token:${APP_TOKEN}@github.com/sessrumnir/".insteadOf
-          "https://github.com/sessrumnir/"
+          OWNER: ${{ github.repository_owner }}
+          REPOS: ${{ inputs.private-collections }}
+          MIRRORS: ${{ runner.temp }}/private-collections
+        run: |
+          set -euo pipefail -o noglob
+          trap 'curl -fsS -o /dev/null -X DELETE -H "Authorization: Bearer ${APP_TOKEN}" -H "Accept: application/vnd.github+json" "${GITHUB_API_URL}/installation/token"' EXIT
+          mkdir -p "${MIRRORS}"
+          auth=$(printf 'x-access-token:%s' "${APP_TOKEN}" | base64 -w 0)
+          for repo in ${REPOS//,/ }; do
+            if ! [[ ${repo} =~ ^[A-Za-z0-9._-]+$ ]]; then
+              echo "::error::private-collections holds an invalid repository name: ${repo}"
+              exit 1
+            fi
+            GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=http.https://github.com/.extraheader \
+              GIT_CONFIG_VALUE_0="AUTHORIZATION: basic ${auth}" \
+              git clone --quiet --mirror "https://github.com/${OWNER}/${repo}.git" "${MIRRORS}/${repo}.git"
+            ln -s "${repo}.git" "${MIRRORS}/${repo}"
+            git config --global "url.file://${MIRRORS}/${repo}.insteadOf" "https://github.com/${OWNER}/${repo}"
+          done
       - if: runner.environment == 'github-hosted'
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/pre-commit
           key: pre-commit-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
-      - name: Lint and build
-        run: make lint build
+      - name: Lint
+        run: make lint
+      - name: Build
+        if: contains(fromJSON('["full", "fast"]'), env.MODE)
+        run: make build
       - name: Python tests
         if: inputs.python-tests && contains(fromJSON('["full", "fast"]'), env.MODE)
         run: make test-python
@@ -206,7 +239,8 @@ jobs:
     name: molecule (${{ matrix.scenario }})
     needs: [changes, checks]
     if: >-
-      !cancelled() && !failure()
+      needs.changes.result == 'success'
+      && needs.checks.result == 'success'
       && needs.changes.outputs.mode == 'full'
       && needs.changes.outputs.scenarios != '[]'
     timeout-minutes: 75
@@ -218,7 +252,7 @@ jobs:
     steps:
       - *checkout
       - *app-token
-      - *clone-with-token
+      - *mirror-private-collections
       - run: make test SCENARIO="${SCENARIO}"
         env:
           SCENARIO: ${{ matrix.scenario }}

@@ -24,6 +24,9 @@ jobs:
   # with bump-minor-pre-major a breaking change before 1.0 is only a minor bump. The App token
   # merges, so the push to main starts the release workflow.
   release:
+    if: >-
+      github.ref == 'refs/heads/main'
+      && contains(fromJSON('["schedule", "workflow_dispatch"]'), github.event_name)
     timeout-minutes: 10
     runs-on: ${{ (github.event.repository.private || github.event_name == 'schedule') && vars.PRIVATE_RUNNER || 'ubuntu-latest' }}
     steps:
@@ -52,10 +55,16 @@ jobs:
               | jq -r '.["."]'
           }
 
-          pr=$(api "pulls?state=open&head=${REPO%%/*}:release-please--branches--main" | jq '.[0] // empty')
-          if [ -z "${pr}" ]; then
-            echo "No release is waiting."
-            exit 0
+          prs=$(api "pulls?state=open&base=main&head=${REPO%%/*}:release-please--branches--main")
+          case "$(jq length <<< "${prs}")" in
+            0) echo "No release is waiting."; exit 0 ;;
+            1) pr=$(jq '.[0]' <<< "${prs}") ;;
+            *) echo "::error::several open release pull requests; merge one by hand."; exit 1 ;;
+          esac
+          if [ "$(jq -r '.head.repo.full_name' <<< "${pr}")" != "${REPO}" ] \
+            || [ "$(jq -r '.head.ref' <<< "${pr}")" != release-please--branches--main ]; then
+            echo "::error::the release pull request does not come from ${REPO}:release-please--branches--main"
+            exit 1
           fi
           number=$(jq -r .number <<< "${pr}")
           base=$(jq -r .base.sha <<< "${pr}")
@@ -65,8 +74,9 @@ jobs:
             echo "::notice::main moved after ${TESTED} was tested; the next run releases #${number}."
             exit 0
           fi
-          other=$(api "compare/${base}...${head}" | jq -r '.files[].filename' \
-            | grep -v -x -E 'CHANGELOG\.md|\.release-please-manifest\.json|galaxy\.yml|version\.txt' || true)
+          compare=$(api "compare/${base}...${head}")
+          files=$(jq -er 'if (.files | length) > 0 and (.files | length) < 300 then .files[].filename else error("no complete file list") end' <<< "${compare}")
+          other=$(grep -v -x -E 'CHANGELOG\.md|\.release-please-manifest\.json|galaxy\.yml|version\.txt' <<< "${files}" || true)
           if [ -n "${other}" ]; then
             echo "::error::#${number} changes more than release metadata: ${other//$'\n'/ }"
             exit 1
@@ -74,11 +84,17 @@ jobs:
 
           old=$(version "${TESTED}")
           new=$(version "${head}")
+          for v in "${old}" "${new}"; do
+            if ! [[ ${v} =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "::error::release version ${v} is not MAJOR.MINOR.PATCH; merge #${number} by hand."
+              exit 1
+            fi
+          done
           if [ "${old%%.*}" != "${new%%.*}" ]; then
             echo "::notice::${old} -> ${new} is a major release; merge #${number} by hand."
             exit 0
           fi
-          if jq -r .body <<< "${pr}" | grep -q 'BREAKING CHANGES'; then
+          if jq -r '.body // ""' <<< "${pr}" | grep -q -i 'BREAKING CHANGE'; then
             echo "::notice::${new} lists breaking changes; merge #${number} by hand."
             exit 0
           fi
