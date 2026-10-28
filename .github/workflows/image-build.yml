@@ -196,6 +196,7 @@ jobs:
           name: image-${{ matrix.image }}
           path: ${{ runner.temp }}/image
       - name: Push
+        id: push
         env:
           TOKEN: ${{ github.token }}
           ACTOR: ${{ github.actor }}
@@ -220,12 +221,18 @@ jobs:
             docker push "${REF}:${tag}"
           done
           echo "::notice::${REF}: ${tags[*]}"
-          echo "DIGEST=$(docker image inspect --format '{{index .RepoDigests 0}}' "${REF}:stable")" >> "${GITHUB_ENV}"
+          digest=$(docker image inspect --format '{{index .RepoDigests 0}}' "${REF}:stable")
+          if ! [[ ${digest} =~ ^"${REF}"@sha256:[0-9a-f]{64}$ ]]; then
+            echo "::error::unexpected digest reference ${digest}"
+            exit 1
+          fi
+          echo "digest=${digest}" >> "${GITHUB_OUTPUT}"
       # cosign runs on the Docker daemon, which sees only the work directory, and as the runner's
       # user so it can read the registry login.
       - name: Sign and attach the SBOM
         env:
           IMAGE: ${{ runner.temp }}/image
+          DIGEST: ${{ steps.push.outputs.digest }}
         run: |
           set -euo pipefail
           export DOCKER_CONFIG="${RUNNER_TEMP}/docker"
