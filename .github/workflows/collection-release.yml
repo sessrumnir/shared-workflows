@@ -87,6 +87,8 @@ jobs:
               GIT_CONFIG_VALUE_0="AUTHORIZATION: basic ${auth}" \
               git clone --quiet --mirror "https://github.com/${OWNER}/${repo}.git" "${MIRRORS}/${repo}.git"
             ln -s "${repo}.git" "${MIRRORS}/${repo}"
+          done
+          for repo in ${REPOS//,/ }; do
             git config --global "url.file://${MIRRORS}/${repo}.insteadOf" "https://github.com/${OWNER}/${repo}"
           done
       - run: make build

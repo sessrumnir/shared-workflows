@@ -172,6 +172,7 @@ jobs:
     if: >-
       !cancelled()
       && needs.changes.result == 'success'
+      && needs.changes.outputs.images != '[]'
       && inputs.push
       && github.ref == 'refs/heads/main'
       && contains(fromJSON('["push", "schedule", "workflow_dispatch"]'), github.event_name)
