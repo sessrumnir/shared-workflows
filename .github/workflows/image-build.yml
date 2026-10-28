@@ -162,11 +162,13 @@ jobs:
           path: |
             ${{ runner.temp }}/image.tar
             ${{ runner.temp }}/version
+            ${{ runner.temp }}/sbom.spdx.json
           if-no-files-found: error
           retention-days: 1
 
   # Pushes what build tested, from main only, and never checks out or runs repository code. An image
-  # whose build failed has no artifact, so only its own push fails.
+  # whose build failed has no artifact, so only its own push fails. Each pushed digest is signed
+  # keyless with the workflow's GitHub identity, and its SBOM attached as a signed attestation.
   push:
     needs: [changes, build]
     if: >-
@@ -180,12 +182,14 @@ jobs:
     runs-on: ${{ vars.PRIVATE_RUNNER }}
     permissions:
       packages: write
+      id-token: write
     strategy:
       fail-fast: false
       matrix:
         image: ${{ fromJSON(needs.changes.outputs.images) }}
     env:
       REF: ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}
+      COSIGN: ghcr.io/${{ github.repository_owner }}/cosign:3.1.4@sha256:4a800b51f8faf84bf3d2b9d29b3699e5fa554d86869e4ffb8be48e07f191988a
     steps:
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
@@ -204,6 +208,7 @@ jobs:
             exit 1
           fi
           docker load --input "${IMAGE}/image.tar"
+          export DOCKER_CONFIG="${RUNNER_TEMP}/docker"
           printf '%s' "${TOKEN}" | docker login ghcr.io --username "${ACTOR}" --password-stdin
           build="${version:+${version}-}$(date -u +%Y%m%d%H%M%S)"
           tags=(stable "${build}")
@@ -215,9 +220,29 @@ jobs:
             docker push "${REF}:${tag}"
           done
           echo "::notice::${REF}: ${tags[*]}"
-      - name: Keep stable and the two versions before it
+          echo "DIGEST=$(docker image inspect --format '{{index .RepoDigests 0}}' "${REF}:stable")" >> "${GITHUB_ENV}"
+      # cosign runs on the Docker daemon, which sees only the work directory, and as the runner's
+      # user so it can read the registry login.
+      - name: Sign and attach the SBOM
+        env:
+          IMAGE: ${{ runner.temp }}/image
+        run: |
+          set -euo pipefail
+          export DOCKER_CONFIG="${RUNNER_TEMP}/docker"
+          trap 'rm -rf "${DOCKER_CONFIG}"' EXIT
+          cosign=(docker run --rm --read-only --tmpfs /tmp --user "$(id -u):$(id -g)"
+            --cap-drop ALL --security-opt no-new-privileges
+            --env HOME=/tmp --env DOCKER_CONFIG=/docker
+            --env ACTIONS_ID_TOKEN_REQUEST_URL --env ACTIONS_ID_TOKEN_REQUEST_TOKEN
+            --volume "${RUNNER_TEMP}/docker:/docker:ro" --volume "${IMAGE}:/image:ro" "${COSIGN}")
+          "${cosign[@]}" sign --yes "${DIGEST}"
+          "${cosign[@]}" attest --yes --type spdxjson --predicate /image/sbom.spdx.json "${DIGEST}"
+          echo "::notice::signed ${DIGEST}"
+      # A signed image is five package versions: the image, and a manifest and an index entry each
+      # for its signature and its attestation.
+      - name: Keep stable and the two images before it
         uses: actions/delete-package-versions@e5bc658cc4c965c472efe991f8beea3981499c55 # v5.0.0
         with:
           package-name: ${{ matrix.image }}
           package-type: container
-          min-versions-to-keep: 3
+          min-versions-to-keep: 15
