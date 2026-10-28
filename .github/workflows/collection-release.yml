@@ -25,6 +25,7 @@ env:
 
 jobs:
   release-please:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     timeout-minutes: 10
     runs-on: ${{ (github.event.repository.private || github.event_name == 'schedule') && vars.PRIVATE_RUNNER || 'ubuntu-latest' }}
     outputs:
@@ -43,7 +44,8 @@ jobs:
         with:
           token: ${{ steps.app.outputs.token }}
 
-  # Builds the tagged collection without write access; publish never runs repository code.
+  # Builds the pushed commit, which Release Please just tagged, without write access; publish never
+  # runs repository code.
   build:
     needs: release-please
     if: needs.release-please.outputs.created == 'true'
@@ -53,7 +55,6 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          ref: ${{ needs.release-please.outputs.tag }}
       - name: Create a GitHub App token for private sessrumnir collections
         id: app
         if: inputs.private-collections != ''
