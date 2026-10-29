@@ -73,6 +73,14 @@
       "schedule": ["at any time"]
     },
     {
+      "description": "Own images are rebuilt nightly and old versions are pruned: pins follow a rebuild at once, one pull request per repository",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["ghcr.io/sessrumnir/**"],
+      "groupName": "sessrumnir images",
+      "minimumReleaseAge": "0 days",
+      "schedule": ["at any time"]
+    },
+    {
       "matchDepNames": ["sessrumnir/shared-workflows"],
       "minimumReleaseAge": "0 days",
       "schedule": ["at any time"]

@@ -285,10 +285,11 @@ jobs:
           "${cosign[@]}" attest --yes --type spdxjson --predicate /image/sbom.spdx.json "${DIGEST}"
           echo "::notice::signed ${DIGEST}"
       # A signed image is five package versions: the image, and a manifest and an index entry each
-      # for its signature and its attestation.
-      - name: Keep stable and the two images before it
+      # for its signature and its attestation. 150 keeps about 30 images, weeks of nightly rebuilds,
+      # so a digest pinned elsewhere outlives the next Renovate run by far.
+      - name: Keep the last 30 images
         uses: actions/delete-package-versions@e5bc658cc4c965c472efe991f8beea3981499c55 # v5.0.0
         with:
           package-name: ${{ matrix.image }}
           package-type: container
-          min-versions-to-keep: 15
+          min-versions-to-keep: 150
