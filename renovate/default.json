@@ -22,7 +22,7 @@
     "enabled": false
   },
   "pip-compile": {
-    "managerFilePatterns": ["/^requirements(-importer)?\\.txt$/"]
+    "managerFilePatterns": ["/^requirements(-importer)?\\.txt$/", "/^images/[^/]+/requirements\\.txt$/"]
   },
   "customManagers": [
     {
