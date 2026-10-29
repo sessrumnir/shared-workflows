@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.19.0](https://github.com/sessrumnir/shared-workflows/compare/v0.18.1...v0.19.0) (2026-10-29)
+
+
+### Features
+
+* lint with the organization's tool images, no pre-commit or Python ([#11](https://github.com/sessrumnir/shared-workflows/issues/11)) ([9258a06](https://github.com/sessrumnir/shared-workflows/commit/9258a068b4d3844bb72707cdc51c0401fea4e4f8))
+
+
+### Bug Fixes
+
+* **image-build:** build on builder runners, test where no BuildKit credential is ([#12](https://github.com/sessrumnir/shared-workflows/issues/12)) ([eec404d](https://github.com/sessrumnir/shared-workflows/commit/eec404d07282e078f991e66586bd84787480e979))
+* keep pinned images through rebuilds, pins follow own images at once ([#14](https://github.com/sessrumnir/shared-workflows/issues/14)) ([5daecce](https://github.com/sessrumnir/shared-workflows/commit/5daecceaca5e46df91803cceaa84807c1893b347))
+
 ## [0.18.1](https://github.com/sessrumnir/shared-workflows/compare/v0.18.0...v0.18.1) (2026-10-28)
 
 
