@@ -17,8 +17,14 @@ repositories.
 
   ```sh
   cosign verify --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-    --certificate-identity-regexp '^https://github.com/<owner>/<repo>/' <image>@<digest>
+    --certificate-identity-regexp '^https://github\.com/sessrumnir/shared-workflows/\.github/workflows/image-build\.yml@' \
+    --certificate-github-workflow-repository <owner>/<repo> \
+    --certificate-github-workflow-ref refs/heads/main <image>@<digest>
   ```
+
+  The certificate names this reusable workflow; the calling repository and
+  branch are checked separately. `verify-attestation --type spdxjson` with
+  the same flags checks the SBOM.
 
 - `pr-title.yml`: requires a Conventional Commit pull request title.
 
