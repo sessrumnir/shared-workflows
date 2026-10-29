@@ -12,8 +12,11 @@ repositories.
 - `collection-train.yml`: merges a waiting collection release after a green
   nightly run.
 - `image-build.yml`: lint, build, test, scan and push the images under
-  `images/<name>/`; `test.sh` may print `version=<x>` to tag `<x>`. Each
-  pushed image is signed keyless and carries its SBOM as an attestation:
+  `images/<name>/`; `test.sh` may print `version=<x>` to tag `<x>`. The
+  build runs on the runner the `BUILD_RUNNER` variable names, which holds
+  the BuildKit credential and runs no repository code; the test, scan and
+  SBOM run on `PRIVATE_RUNNER`. Each pushed image is signed keyless and
+  carries its SBOM as an attestation:
 
   ```sh
   cosign verify --certificate-oidc-issuer https://token.actions.githubusercontent.com \

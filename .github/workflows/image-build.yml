@@ -70,10 +70,62 @@ jobs:
           echo "images=${images}" >> "${GITHUB_OUTPUT}"
           echo "images: ${images}"
 
+  # Builds each image on a builder runner, which holds the BuildKit client key and runs no repository
+  # code: checkout, build, upload of the image tarball.
   build:
     needs: changes
     if: needs.changes.outputs.images != '[]'
     timeout-minutes: 60
+    runs-on: ${{ vars.BUILD_RUNNER || vars.PRIVATE_RUNNER }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ${{ fromJSON(needs.changes.outputs.images) }}
+    env:
+      DIR: ${{ inputs.directory == '.' && matrix.image || format('{0}/{1}', inputs.directory, matrix.image) }}
+      REF: ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Connect to the cluster's rootless BuildKit
+        run: >-
+          docker buildx create --name ci --use --driver remote
+          --driver-opt "cacert=${HOME}/.buildkit/ca.crt,cert=${HOME}/.buildkit/tls.crt,key=${HOME}/.buildkit/tls.key,servername=buildkitd.buildkit.svc"
+          "${BUILDKIT_HOST}"
+      # An image that will be pushed is built without the shared BuildKit cache and with fresh base
+      # images, so nothing a pull request build left in the cache can reach it.
+      - name: Build
+        env:
+          FRESH: >-
+            ${{ inputs.push && github.ref == 'refs/heads/main'
+            && contains(fromJSON('["push", "schedule", "workflow_dispatch"]'), github.event_name) }}
+        run: |
+          set -euo pipefail
+          fresh=()
+          if [ "${FRESH}" = true ]; then
+            fresh=(--no-cache --pull)
+          fi
+          docker buildx build "${fresh[@]}" --file "${DIR}/Containerfile" \
+            --output "type=docker,dest=${RUNNER_TEMP}/image.tar" --tag "${REF}:stable" "${DIR}"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: build-${{ matrix.image }}
+          path: ${{ runner.temp }}/image.tar
+          if-no-files-found: error
+          retention-days: 1
+
+  # Lints, tests, scans and describes each built image on an ordinary runner, which holds no BuildKit
+  # credential. An image whose build failed has no tarball, so only its own test fails.
+  test:
+    needs: [changes, build]
+    if: >-
+      !cancelled()
+      && needs.changes.result == 'success'
+      && needs.changes.outputs.images != '[]'
+    timeout-minutes: 30
     runs-on: ${{ vars.PRIVATE_RUNNER }}
     permissions:
       contents: read
@@ -105,26 +157,10 @@ jobs:
           rm -rf "${login}"
           docker run --rm --interactive --volume "${PWD}/.hadolint.yaml:/hadolint.yaml:ro" \
             "${HADOLINT}" --config /hadolint.yaml - < "${DIR}/Containerfile"
-      - name: Connect to the cluster's rootless BuildKit
-        run: >-
-          docker buildx create --name ci --use --driver remote
-          --driver-opt "cacert=${HOME}/.buildkit/ca.crt,cert=${HOME}/.buildkit/tls.crt,key=${HOME}/.buildkit/tls.key,servername=buildkitd.buildkit.svc"
-          "${BUILDKIT_HOST}"
-      # An image that will be pushed is built without the shared BuildKit cache and with fresh base
-      # images, so nothing a pull request build left in the cache can reach it.
-      - name: Build
-        env:
-          FRESH: >-
-            ${{ inputs.push && github.ref == 'refs/heads/main'
-            && contains(fromJSON('["push", "schedule", "workflow_dispatch"]'), github.event_name) }}
-        run: |
-          set -euo pipefail
-          fresh=()
-          if [ "${FRESH}" = true ]; then
-            fresh=(--no-cache --pull)
-          fi
-          docker buildx build "${fresh[@]}" --file "${DIR}/Containerfile" \
-            --output "type=docker,dest=${RUNNER_TEMP}/image.tar" --tag "${REF}:stable" "${DIR}"
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: build-${{ matrix.image }}
+          path: ${{ runner.temp }}
       - name: Load and test
         run: |
           set -euo pipefail
@@ -158,19 +194,18 @@ jobs:
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: inputs.push
         with:
-          name: image-${{ matrix.image }}
+          name: tested-${{ matrix.image }}
           path: |
-            ${{ runner.temp }}/image.tar
             ${{ runner.temp }}/version
             ${{ runner.temp }}/sbom.spdx.json
           if-no-files-found: error
           retention-days: 1
 
-  # Pushes what build tested, from main only, and never checks out or runs repository code. An image
-  # whose build failed has no artifact, so only its own push fails. Each pushed digest is signed
+  # Pushes what test passed, from main only, and never checks out or runs repository code. An image
+  # whose test failed has no tested artifact, so only its own push fails. Each pushed digest is signed
   # keyless with the workflow's GitHub identity, and its SBOM attached as a signed attestation.
   push:
-    needs: [changes, build]
+    needs: [changes, test]
     if: >-
       !cancelled()
       && needs.changes.result == 'success'
@@ -193,7 +228,11 @@ jobs:
     steps:
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: image-${{ matrix.image }}
+          name: build-${{ matrix.image }}
+          path: ${{ runner.temp }}/image
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: tested-${{ matrix.image }}
           path: ${{ runner.temp }}/image
       - name: Push
         id: push
