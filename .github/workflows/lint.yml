@@ -1,0 +1,24 @@
+---
+name: lint
+
+on:
+  workflow_call:
+    inputs:
+      timeout-minutes:
+        description: Minutes before the lint job is cancelled
+        type: number
+        default: 20
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    runs-on: ${{ github.event.repository.private && vars.PRIVATE_RUNNER || 'ubuntu-latest' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Lint
+        run: make lint
