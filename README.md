@@ -29,6 +29,8 @@ repositories.
   branch are checked separately. `verify-attestation --type spdxjson` with
   the same flags checks the SBOM.
 
+- `lint.yml`: checks out the repository and runs its `make lint`, the
+  building block for repositories without their own pipeline.
 - `pr-title.yml`: requires a Conventional Commit pull request title.
 
 Pin a release by commit SHA:
