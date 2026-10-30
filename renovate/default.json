@@ -44,6 +44,16 @@
     },
     {
       "customType": "regex",
+      "description": "Own tool images pinned by version and digest in workflow files",
+      "managerFilePatterns": ["/^\\.github/workflows/[^/]+\\.ya?ml$/"],
+      "matchStrings": [
+        "ghcr\\.io/\\$\\{\\{ github\\.repository_owner \\}\\}/(?<name>[a-z0-9._-]+):(?<currentValue>[0-9][^@\\s]*)@(?<currentDigest>sha256:[a-f0-9]{64})"
+      ],
+      "depNameTemplate": "ghcr.io/sessrumnir/{{{name}}}",
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
       "description": "Own collections installed from git (source: git+https://…, type: git): the ansible-galaxy manager cannot update them",
       "managerFilePatterns": ["/(^|/)requirements\\.ya?ml$/"],
       "matchStrings": [

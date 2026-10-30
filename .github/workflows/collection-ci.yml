@@ -165,15 +165,16 @@ jobs:
           persist-credentials: false
       - name: Trivy
         if: contains(fromJSON('["full", "fast"]'), env.MODE)
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
-        with:
-          scan-type: fs
-          scan-ref: .
-          scanners: vuln,misconfig,secret
-          severity: HIGH,CRITICAL
-          ignore-unfixed: true
-          exit-code: "1"
-          cache-dir: ${{ runner.temp }}/trivy
+        env:
+          TRIVY: ghcr.io/${{ github.repository_owner }}/trivy:0.76.1@sha256:feaa6a09ef910995dceddce0d2ecff9153dc47527775ce0f183462d125c3116e
+        run: |
+          set -euo pipefail
+          mkdir -p "${RUNNER_TEMP}/trivy"
+          docker run --rm --read-only --tmpfs /tmp --cap-drop ALL --security-opt no-new-privileges \
+            --user "$(id -u):$(id -g)" --env HOME=/tmp --workdir /src \
+            --volume "${PWD}:/src:ro" --volume "${RUNNER_TEMP}/trivy:/cache" \
+            "${TRIVY}" filesystem --cache-dir /cache --scanners vuln,misconfig,secret \
+            --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 --no-progress .
       - &app-token
         name: Create a GitHub App token for private sessrumnir collections
         id: app
