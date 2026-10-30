@@ -27,6 +27,14 @@
   "customManagers": [
     {
       "customType": "regex",
+      "description": "Tool versions in Containerfile ARGs, marked by a renovate comment on the line above",
+      "managerFilePatterns": ["/(^|/)(Container|Docker)file$/"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>[a-z-]+) depName=(?<depName>\\S+)\\nARG [A-Z0-9_]+=(?<currentValue>\\S+)"
+      ]
+    },
+    {
+      "customType": "regex",
       "description": "Tool images pinned by version and digest in tools.mk",
       "managerFilePatterns": ["/(^|/)tools\\.mk$/"],
       "matchStrings": [
