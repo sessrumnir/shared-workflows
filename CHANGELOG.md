@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.19.1](https://github.com/sessrumnir/shared-workflows/compare/v0.19.0...v0.19.1) (2026-10-30)
+
+
+### Bug Fixes
+
+* **renovate:** update the images' Python requirements ([#15](https://github.com/sessrumnir/shared-workflows/issues/15)) ([ff1d4d5](https://github.com/sessrumnir/shared-workflows/commit/ff1d4d5fa9a064269a380c9094f0bb6f1539d048))
+
 ## [0.19.0](https://github.com/sessrumnir/shared-workflows/compare/v0.18.1...v0.19.0) (2026-10-29)
 
 
