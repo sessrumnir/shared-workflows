@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.21.0](https://github.com/sessrumnir/shared-workflows/compare/v0.20.0...v0.21.0) (2026-10-30)
+
+
+### Documentation
+
+* **readme:** the scans run our pinned Trivy image ([#24](https://github.com/sessrumnir/shared-workflows/issues/24)) ([d05e8c5](https://github.com/sessrumnir/shared-workflows/commit/d05e8c57b0f30a34ad21a281e507971863751cd7))
+
 ## [0.20.0](https://github.com/sessrumnir/shared-workflows/compare/v0.19.1...v0.20.0) (2026-10-30)
 
 
