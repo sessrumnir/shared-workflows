@@ -5,8 +5,8 @@ repositories.
 
 ## Workflows
 
-- `collection-ci.yml`: lint, build, `ansible-test` and Molecule for an
-  Ansible collection.
+- `collection-ci.yml`: Trivy, lint, build, `ansible-test` and Molecule for
+  an Ansible collection.
 - `collection-release.yml`: Release Please, then build, checksum and attest
   a collection release.
 - `collection-train.yml`: merges a waiting collection release after a green
@@ -15,8 +15,9 @@ repositories.
   `images/<name>/`; `test.sh` may print `version=<x>` to tag `<x>`. The
   build runs on the runner the `BUILD_RUNNER` variable names, which holds
   the BuildKit credential and runs no repository code; the test, scan and
-  SBOM run on `PRIVATE_RUNNER`. Each pushed image is signed keyless and
-  carries its SBOM as an attestation:
+  SBOM run on `PRIVATE_RUNNER`, the scan and SBOM with the owner's pinned
+  `trivy` image. Each pushed image is signed keyless and carries its SBOM
+  as an attestation:
 
   ```sh
   cosign verify --certificate-oidc-issuer https://token.actions.githubusercontent.com \
