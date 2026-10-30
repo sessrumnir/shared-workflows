@@ -76,7 +76,7 @@ jobs:
     needs: changes
     if: needs.changes.outputs.images != '[]'
     timeout-minutes: 60
-    runs-on: ${{ vars.BUILD_RUNNER || vars.PRIVATE_RUNNER }}
+    runs-on: ${{ vars.BUILD_RUNNER }}
     permissions:
       contents: read
     strategy:
@@ -147,7 +147,7 @@ jobs:
         env:
           TOKEN: ${{ github.token }}
           ACTOR: ${{ github.actor }}
-          HADOLINT: ghcr.io/${{ github.repository_owner }}/hadolint@sha256:3695882bc1e6e5bd6bb40d11a771936bb5873286e5ee4b5a1874e61acf4139ec # stable
+          HADOLINT: ghcr.io/${{ github.repository_owner }}/hadolint:2.15.1@sha256:1671d5a0567311ed5cff24dab35bc380713b7541ccb9565b020911531ee10e1c
         run: |
           set -euo pipefail
           login=$(mktemp -d)
@@ -172,21 +172,21 @@ jobs:
             exit 1
           fi
           printf '%s' "${version}" > "${RUNNER_TEMP}/version"
-      - name: Scan
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
-        with:
-          input: ${{ runner.temp }}/image.tar
-          severity: HIGH,CRITICAL
-          ignore-unfixed: true
-          exit-code: "1"
-          cache-dir: ${{ runner.temp }}/trivy
-      - name: SBOM
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
-        with:
-          input: ${{ runner.temp }}/image.tar
-          format: spdx-json
-          output: ${{ runner.temp }}/sbom.spdx.json
-          cache-dir: ${{ runner.temp }}/trivy
+      - name: Scan and describe
+        env:
+          TRIVY: ghcr.io/${{ github.repository_owner }}/trivy:0.76.1@sha256:feaa6a09ef910995dceddce0d2ecff9153dc47527775ce0f183462d125c3116e
+        run: |
+          set -euo pipefail
+          mkdir -p "${RUNNER_TEMP}/trivy"
+          trivy() {
+            docker run --rm --read-only --tmpfs /tmp --cap-drop ALL --security-opt no-new-privileges \
+              --user "$(id -u):$(id -g)" --env HOME=/tmp --workdir /src \
+              --volume "${PWD}:/src:ro" --volume "${RUNNER_TEMP}/trivy:/cache" \
+              --volume "${RUNNER_TEMP}/image.tar:/image.tar:ro" \
+              "${TRIVY}" image --cache-dir /cache --input /image.tar "$@"
+          }
+          trivy --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 --no-progress
+          trivy --format spdx-json --quiet > "${RUNNER_TEMP}/sbom.spdx.json"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: sbom-${{ matrix.image }}
