@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.20.0](https://github.com/sessrumnir/shared-workflows/compare/v0.19.1...v0.20.0) (2026-10-30)
+
+
+### Features
+
+* **renovate:** update tool versions in Containerfile ARGs ([#18](https://github.com/sessrumnir/shared-workflows/issues/18)) ([2170d85](https://github.com/sessrumnir/shared-workflows/commit/2170d855070966ce18a289c216dee12062f13807))
+
 ## [0.19.1](https://github.com/sessrumnir/shared-workflows/compare/v0.19.0...v0.19.1) (2026-10-30)
 
 
