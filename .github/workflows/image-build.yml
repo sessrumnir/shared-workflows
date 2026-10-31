@@ -174,7 +174,7 @@ jobs:
           printf '%s' "${version}" > "${RUNNER_TEMP}/version"
       - name: Scan and describe
         env:
-          TRIVY: ghcr.io/${{ github.repository_owner }}/trivy:0.76.1@sha256:b654b34030a3e3d38c7e39da7370a374aaf406cbb983135e19e61e525db609b3
+          TRIVY: ghcr.io/${{ github.repository_owner }}/trivy:0.76.1@sha256:5036451bb330fa92b4dd1df2bc3ba767542ff1c7c9363424f3e5d714d2c0e394
         run: |
           set -euo pipefail
           mkdir -p "${RUNNER_TEMP}/trivy"
@@ -224,7 +224,7 @@ jobs:
         image: ${{ fromJSON(needs.changes.outputs.images) }}
     env:
       REF: ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}
-      COSIGN: ghcr.io/${{ github.repository_owner }}/cosign:3.1.4@sha256:24e4b5ecef05b2a7ca688d3f6ce5152b4cd87fd00a5a8cc3c05cf162b62d60ee
+      COSIGN: ghcr.io/${{ github.repository_owner }}/cosign:3.1.4@sha256:7f1f0983fdf2961e4cc3a3ec4801c13c9a45b6980afc45fb40ebb7c465dbea9f
     steps:
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
