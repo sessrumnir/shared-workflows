@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.22.0](https://github.com/sessrumnir/shared-workflows/compare/v0.21.0...v0.22.0) (2026-10-31)
+
+
+### Features
+
+* **renovate:** track Molecule platform images pinned by version and digest ([#26](https://github.com/sessrumnir/shared-workflows/issues/26)) ([5c40db4](https://github.com/sessrumnir/shared-workflows/commit/5c40db419b4da7352a79143d4048469c750d483a))
+
 ## [0.21.0](https://github.com/sessrumnir/shared-workflows/compare/v0.20.0...v0.21.0) (2026-10-30)
 
 
