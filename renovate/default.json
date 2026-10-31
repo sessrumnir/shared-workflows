@@ -60,6 +60,15 @@
         "source: git\\+https://github\\.com/(?<depName>sessrumnir/[\\w.-]+?)(?:\\.git)?\\n\\s+type: git\\n\\s+version: (?<currentValue>\\S+)"
       ],
       "datasourceTemplate": "github-tags"
+    },
+    {
+      "customType": "regex",
+      "description": "Molecule platform images pinned by version and digest",
+      "managerFilePatterns": ["/(^|/)molecule/[^/]+/molecule\\.ya?ml$/"],
+      "matchStrings": [
+        "image: (?<depName>[a-z0-9.-]+/[a-z0-9._/-]+):(?<currentValue>[0-9][^@\\s]*)@(?<currentDigest>sha256:[a-f0-9]{64})"
+      ],
+      "datasourceTemplate": "docker"
     }
   ],
   "packageRules": [
