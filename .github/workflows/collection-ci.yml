@@ -166,7 +166,7 @@ jobs:
       - name: Trivy
         if: contains(fromJSON('["full", "fast"]'), env.MODE)
         env:
-          TRIVY: ghcr.io/${{ github.repository_owner }}/trivy:0.76.1@sha256:b654b34030a3e3d38c7e39da7370a374aaf406cbb983135e19e61e525db609b3
+          TRIVY: ghcr.io/${{ github.repository_owner }}/trivy:0.76.1@sha256:5036451bb330fa92b4dd1df2bc3ba767542ff1c7c9363424f3e5d714d2c0e394
         run: |
           set -euo pipefail
           mkdir -p "${RUNNER_TEMP}/trivy"
