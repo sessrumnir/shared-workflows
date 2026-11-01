@@ -147,7 +147,7 @@ jobs:
         env:
           TOKEN: ${{ github.token }}
           ACTOR: ${{ github.actor }}
-          HADOLINT: ghcr.io/${{ github.repository_owner }}/hadolint:2.15.1@sha256:1671d5a0567311ed5cff24dab35bc380713b7541ccb9565b020911531ee10e1c
+          HADOLINT: ghcr.io/${{ github.repository_owner }}/hadolint:2.15.1@sha256:11b6fd56ddd3af874d802e95ae623703bc8304f0116354df66752461422f7239
         run: |
           set -euo pipefail
           login=$(mktemp -d)
