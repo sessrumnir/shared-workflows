@@ -147,7 +147,7 @@ jobs:
         env:
           TOKEN: ${{ github.token }}
           ACTOR: ${{ github.actor }}
-          HADOLINT: ghcr.io/${{ github.repository_owner }}/hadolint:2.15.1@sha256:11b6fd56ddd3af874d802e95ae623703bc8304f0116354df66752461422f7239
+          HADOLINT: ghcr.io/${{ github.repository_owner }}/hadolint:2.15.1@sha256:aa976a65a4cec22a3175a959f3eb9b312460543f1e0b20edc9a1a23044f5300b
         run: |
           set -euo pipefail
           login=$(mktemp -d)
@@ -174,7 +174,7 @@ jobs:
           printf '%s' "${version}" > "${RUNNER_TEMP}/version"
       - name: Scan and describe
         env:
-          TRIVY: ghcr.io/${{ github.repository_owner }}/trivy:0.76.1@sha256:5036451bb330fa92b4dd1df2bc3ba767542ff1c7c9363424f3e5d714d2c0e394
+          TRIVY: ghcr.io/${{ github.repository_owner }}/trivy:0.76.1@sha256:08194e4fac75cf28fd47a851110166dc5a2e5216a4160a76fedab2cd383c6212
         run: |
           set -euo pipefail
           mkdir -p "${RUNNER_TEMP}/trivy"
@@ -224,7 +224,7 @@ jobs:
         image: ${{ fromJSON(needs.changes.outputs.images) }}
     env:
       REF: ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}
-      COSIGN: ghcr.io/${{ github.repository_owner }}/cosign:3.1.4@sha256:7f1f0983fdf2961e4cc3a3ec4801c13c9a45b6980afc45fb40ebb7c465dbea9f
+      COSIGN: ghcr.io/${{ github.repository_owner }}/cosign:3.1.4@sha256:11bea2c3c843cb57013cfb39ed2d77ff8742012178a30ad5cc55d3f6fc27038b
     steps:
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
