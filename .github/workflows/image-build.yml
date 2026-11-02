@@ -157,7 +157,7 @@ jobs:
           rm -rf "${login}"
           docker run --rm --interactive --volume "${PWD}/.hadolint.yaml:/hadolint.yaml:ro" \
             "${HADOLINT}" --config /hadolint.yaml - < "${DIR}/Containerfile"
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: build-${{ matrix.image }}
           path: ${{ runner.temp }}
@@ -226,11 +226,11 @@ jobs:
       REF: ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}
       COSIGN: ghcr.io/${{ github.repository_owner }}/cosign:3.1.4@sha256:11bea2c3c843cb57013cfb39ed2d77ff8742012178a30ad5cc55d3f6fc27038b
     steps:
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: build-${{ matrix.image }}
           path: ${{ runner.temp }}/image
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: tested-${{ matrix.image }}
           path: ${{ runner.temp }}/image
