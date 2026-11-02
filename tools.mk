@@ -1,7 +1,7 @@
 # Tool images, each pinned by version and digest; Renovate updates both.
-ACTIONLINT := ghcr.io/sessrumnir/actionlint:1.7.12@sha256:71ff27677ff492cdd03737bf216d1e4d62d3fb305844ce4ce1ed9f7730c26e77
-GITLEAKS := ghcr.io/sessrumnir/gitleaks:8.30.1@sha256:03e185b08e511abeae924d410d4c1cbb39d5ce5b1b27865500f9a112adfe9cb6
+ACTIONLINT := ghcr.io/sessrumnir/actionlint:1.7.12@sha256:d7694a914990e6b455ae8e7dbfc580d805ecc15980e798fcb13223a8743ee8a0
+GITLEAKS := ghcr.io/sessrumnir/gitleaks:8.30.1@sha256:161b2afd1a40aafc521784696c5cb643e427584b886454d00ea6366f8bf1f416
 MARKDOWNLINT := ghcr.io/sessrumnir/markdownlint:0.49.1@sha256:7de150de20db192435439882de07ce2a014dbe4b54116b15bb0eef06a910506c
 PRE_COMMIT_HOOKS := ghcr.io/sessrumnir/pre-commit-hooks:6.0.0@sha256:20d5348a5b719855ef5b3867f094b8bf163f012178f7d7d558d18c564ea236bd
-RENOVATE_CONFIG_VALIDATOR := ghcr.io/sessrumnir/renovate-config-validator:44.176.1@sha256:96ecb277e0ca0cdf78568fbd922f2f896d9b1732bced5161867d71535855e3bc
-ZIZMOR := ghcr.io/sessrumnir/zizmor:1.31.1@sha256:553c72684161bebf0d7b39934ffc8f9a0396ef81cee6dbe063830972560eb630
+RENOVATE_CONFIG_VALIDATOR := ghcr.io/sessrumnir/renovate-config-validator:44.176.1@sha256:b7131494a8b5411b1b545a2d07f05e458c50a66284b2771cabb6df43f08f7074
+ZIZMOR := ghcr.io/sessrumnir/zizmor:1.31.1@sha256:7af578159520f65a6ce3b1469cc60916edd0ee07eef7aeca0fe88d819f5ca5a6
