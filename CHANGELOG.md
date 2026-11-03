@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.23.0](https://github.com/sessrumnir/shared-workflows/compare/v0.22.0...v0.23.0) (2026-11-03)
+
+
+### Features
+
+* **image-build:** build pull requests on their own BuildKit ([#34](https://github.com/sessrumnir/shared-workflows/issues/34)) ([f72ce3e](https://github.com/sessrumnir/shared-workflows/commit/f72ce3ec036b1b6936e7988f529d32a5b90bcee7))
+
 ## [0.22.0](https://github.com/sessrumnir/shared-workflows/compare/v0.21.0...v0.22.0) (2026-10-31)
 
 
