@@ -13,8 +13,10 @@ repositories.
   nightly run.
 - `image-build.yml`: lint, build, test, scan and push the images under
   `images/<name>/`; `test.sh` may print `version=<x>` to tag `<x>`. The
-  build runs on the runner the `BUILD_RUNNER` variable names, which holds
-  the BuildKit credential and runs no repository code; the test, scan and
+  build runs on a runner that holds a BuildKit credential and runs no
+  repository code: `BUILD_RUNNER` for `main`'s push, schedule and dispatch
+  runs, `PR_BUILD_RUNNER` (a separate BuildKit) for everything else; a
+  pull request build fails when `PR_BUILD_RUNNER` is unset. The test, scan and
   SBOM run on `PRIVATE_RUNNER`, the scan and SBOM with the owner's pinned
   `trivy` image. Each pushed image is signed keyless and carries its SBOM
   as an attestation:
