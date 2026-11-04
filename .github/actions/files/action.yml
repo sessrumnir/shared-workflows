@@ -1,0 +1,23 @@
+---
+name: files
+description: merge conflict markers, YAML syntax, final newlines and trailing whitespace in every text file
+runs:
+  using: docker
+  image: docker://ghcr.io/sessrumnir/pre-commit-hooks:6.0.0@sha256:737d7b071815f66fe8fdd273142a28c9134aed13f912a9211aa7d10e0fd5cead
+  entrypoint: sh
+  env:
+    GIT_CONFIG_COUNT: "1"
+    GIT_CONFIG_KEY_0: safe.directory
+    GIT_CONFIG_VALUE_0: "*"
+  args:
+    - "-euc"
+    - |
+      list=$(mktemp)
+      find . -path ./.git -prune -o -type f -exec grep -IlZ '' {} + > "${list}" || [ -s "${list}" ]
+      xargs -0 -r check-merge-conflict --assume-in-merge < "${list}"
+      grep -zE '\.ya?ml$' "${list}" | xargs -0 -r check-yaml --allow-multiple-documents
+      copy=$(mktemp -d)
+      grep -zv '/testdata/' "${list}" | xargs -0 -r cp --parents -t "${copy}"
+      cd "${copy}"
+      find . -type f -print0 | xargs -0 -r end-of-file-fixer
+      find . -type f -print0 | xargs -0 -r trailing-whitespace-fixer

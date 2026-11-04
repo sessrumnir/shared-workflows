@@ -1,0 +1,10 @@
+---
+name: hadolint
+description: hadolint over the root Containerfile
+runs:
+  using: docker
+  image: docker://ghcr.io/sessrumnir/hadolint:2.15.1@sha256:1e791b087807f52c3ac4228f76982cc65941c2327efaedc9a88ce63b126b17a1
+  args:
+    - "--config"
+    - ".hadolint.yaml"
+    - "Containerfile"

@@ -32,8 +32,15 @@ repositories.
   branch are checked separately. `verify-attestation --type spdxjson` with
   the same flags checks the SBOM.
 
-- `lint.yml`: checks out the repository and runs its `make lint`, the
-  building block for repositories without their own pipeline.
+- `lint.yml`: the common checks, each a container action under
+  `.github/actions/` with a pinned tool image and no network or Docker
+  daemon needed: file hygiene, actionlint, zizmor, gitleaks, the Renovate
+  config validator and markdownlint, then optionally hadolint on the root
+  `Containerfile`, checkov and trivy. A private repository runs them on
+  `JOBS_RUNNER`, a runner that starts each step as its own container
+  without Docker (ARC's Kubernetes container mode); public ones on
+  GitHub-hosted runners. `make-targets` adds the repository's own make
+  targets, on `PRIVATE_RUNNER`.
 - `pr-title.yml`: requires a Conventional Commit pull request title.
 
 Pin a release by commit SHA:
