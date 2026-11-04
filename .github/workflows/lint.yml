@@ -33,7 +33,7 @@ jobs:
     timeout-minutes: ${{ inputs.timeout-minutes }}
     runs-on: ${{ github.event.repository.private && vars.JOBS_RUNNER || 'ubuntu-latest' }}
     container:
-      image: ghcr.io/sessrumnir/python-uv:3.14.9@sha256:f3cbd87053fa82108f580a254e4a03425c73b377042abb75729c98819e015539
+      image: ghcr.io/sessrumnir/python-uv:3.14.9@sha256:bbe958157ad5c055d92716a58204160521b0723b53ff1a7359964f2344602a86
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
