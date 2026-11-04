@@ -13,6 +13,7 @@ repositories.
   nightly run.
 - `image-build.yml`: lint, build, test, scan and push the images under
   `images/<name>/`; `test.sh` may print `version=<x>` to tag `<x>`. The
+  changed images are selected on `JOBS_RUNNER`, else `PRIVATE_RUNNER`. The
   build runs on a runner that holds a BuildKit credential and runs no
   repository code: `BUILD_RUNNER` for `main`'s push, schedule and dispatch
   runs, `PR_BUILD_RUNNER` (a separate BuildKit) for everything else; a
@@ -38,10 +39,11 @@ repositories.
   config validator and markdownlint, then optionally hadolint on the root
   `Containerfile`, checkov and trivy. A private repository runs them on
   `JOBS_RUNNER`, a runner that starts each step as its own container
-  without Docker (ARC's Kubernetes container mode); public ones on
-  GitHub-hosted runners. `make-targets` adds the repository's own make
-  targets, on `PRIVATE_RUNNER`.
-- `pr-title.yml`: requires a Conventional Commit pull request title.
+  without Docker (ARC's Kubernetes container mode), or on `PRIVATE_RUNNER`
+  where that is unset; public ones on GitHub-hosted runners. `make-targets`
+  adds the repository's own make targets, on `PRIVATE_RUNNER`.
+- `pr-title.yml`: requires a Conventional Commit pull request title. Runs
+  where `lint.yml`'s checks run.
 
 Pin a release by commit SHA:
 
