@@ -24,3 +24,6 @@ jobs:
         with:
           persist-credentials: false
       - run: make lint test
+
+  lint-workflow:
+    uses: $/.github/workflows/lint.yml

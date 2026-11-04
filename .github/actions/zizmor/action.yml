@@ -1,0 +1,8 @@
+---
+name: zizmor
+description: zizmor over the workflows and actions
+runs:
+  using: docker
+  image: docker://ghcr.io/sessrumnir/zizmor:1.31.1@sha256:bf3db158751b2e3e13bd748e7d3fa422e39253d816623855b9577646829ed86a
+  args:
+    - "."

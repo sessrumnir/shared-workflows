@@ -1,0 +1,16 @@
+---
+name: checkov
+description: checkov over the checkout
+runs:
+  using: docker
+  image: docker://ghcr.io/sessrumnir/checkov:3.3.27@sha256:a7f876903d90c9682147cc0c9f6158a418c3cbef0e9a07e4863f870921736b7f
+  args:
+    - "--directory"
+    - "."
+    - "--framework"
+    - "kubernetes"
+    - "github_actions"
+    - "secrets"
+    - "--quiet"
+    - "--compact"
+    - "--skip-download"

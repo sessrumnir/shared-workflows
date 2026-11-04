@@ -5,15 +5,54 @@ on:
   workflow_call:
     inputs:
       timeout-minutes:
-        description: Minutes before the lint job is cancelled
+        description: Minutes before each lint job is cancelled
         type: number
         default: 20
+      hadolint:
+        description: Lint the Containerfile at the repository root
+        type: boolean
+        default: false
+      checkov:
+        description: Scan with checkov
+        type: boolean
+        default: true
+      trivy:
+        description: Scan for secrets and misconfigurations with trivy
+        type: boolean
+        default: true
+      make-targets:
+        description: Repository-specific make targets that need Docker, such as a Go or Ansible linter
+        type: string
+        default: ""
 
 permissions:
   contents: read
 
 jobs:
-  lint:
+  checks:
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    runs-on: ${{ github.event.repository.private && vars.JOBS_RUNNER || 'ubuntu-latest' }}
+    container:
+      image: ghcr.io/sessrumnir/python-uv:3.14.9@sha256:f3cbd87053fa82108f580a254e4a03425c73b377042abb75729c98819e015539
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: $/.github/actions/files
+      - uses: $/.github/actions/actionlint
+      - uses: $/.github/actions/zizmor
+      - uses: $/.github/actions/gitleaks
+      - uses: $/.github/actions/renovate-config-validator
+      - uses: $/.github/actions/markdownlint
+      - if: inputs.hadolint
+        uses: $/.github/actions/hadolint
+      - if: inputs.checkov
+        uses: $/.github/actions/checkov
+      - if: inputs.trivy
+        uses: $/.github/actions/trivy
+
+  make:
+    if: inputs.make-targets != ''
     timeout-minutes: ${{ inputs.timeout-minutes }}
     runs-on: ${{ github.event.repository.private && vars.PRIVATE_RUNNER || 'ubuntu-latest' }}
     steps:
@@ -21,4 +60,8 @@ jobs:
         with:
           persist-credentials: false
       - name: Lint
-        run: make lint
+        env:
+          TARGETS: ${{ inputs.make-targets }}
+        run: |
+          read -ra targets <<< "${TARGETS}"
+          make -- "${targets[@]}"
