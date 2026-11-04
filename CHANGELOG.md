@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.25.1](https://github.com/sessrumnir/shared-workflows/compare/v0.25.0...v0.25.1) (2026-11-04)
+
+
+### Bug Fixes
+
+* run container job steps with bash ([#44](https://github.com/sessrumnir/shared-workflows/issues/44)) ([3da7bcc](https://github.com/sessrumnir/shared-workflows/commit/3da7bcc6ceddf36b054866435648698cb102d570))
+
 ## [0.25.0](https://github.com/sessrumnir/shared-workflows/compare/v0.24.0...v0.25.0) (2026-11-04)
 
 
