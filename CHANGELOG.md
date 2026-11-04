@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.24.0](https://github.com/sessrumnir/shared-workflows/compare/v0.23.0...v0.24.0) (2026-11-04)
+
+
+### Features
+
+* **lint:** common checks as container actions, no Docker daemon needed ([#38](https://github.com/sessrumnir/shared-workflows/issues/38)) ([f9731b1](https://github.com/sessrumnir/shared-workflows/commit/f9731b19a14867de7ad84938d973f15dc54ad0c5))
+
 ## [0.23.0](https://github.com/sessrumnir/shared-workflows/compare/v0.22.0...v0.23.0) (2026-11-03)
 
 
