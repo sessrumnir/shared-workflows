@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.25.0](https://github.com/sessrumnir/shared-workflows/compare/v0.24.0...v0.25.0) (2026-11-04)
+
+
+### Features
+
+* pr-title and image selection on JOBS_RUNNER, PRIVATE_RUNNER fallback ([#41](https://github.com/sessrumnir/shared-workflows/issues/41)) ([6d71ed0](https://github.com/sessrumnir/shared-workflows/commit/6d71ed06a0d96c4fa477bb640fc337e88e26cae6))
+
 ## [0.24.0](https://github.com/sessrumnir/shared-workflows/compare/v0.23.0...v0.24.0) (2026-11-04)
 
 
