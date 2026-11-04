@@ -31,9 +31,9 @@ permissions:
 jobs:
   checks:
     timeout-minutes: ${{ inputs.timeout-minutes }}
-    runs-on: ${{ github.event.repository.private && vars.JOBS_RUNNER || 'ubuntu-latest' }}
+    runs-on: ${{ github.event.repository.private && (vars.JOBS_RUNNER || vars.PRIVATE_RUNNER) || 'ubuntu-latest' }}
     container:
-      image: ghcr.io/sessrumnir/python-uv:3.14.9@sha256:bbe958157ad5c055d92716a58204160521b0723b53ff1a7359964f2344602a86
+      image: ghcr.io/sessrumnir/python-uv:3.14.9@sha256:c9e7c9d3f2737dc4c3df12ea43fd39171869bc9d1e2cce25e84b9d2e65b5be80
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

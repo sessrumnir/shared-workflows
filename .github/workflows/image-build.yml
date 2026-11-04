@@ -23,7 +23,9 @@ permissions:
 jobs:
   changes:
     timeout-minutes: 5
-    runs-on: ${{ vars.PRIVATE_RUNNER }}
+    runs-on: ${{ vars.JOBS_RUNNER || vars.PRIVATE_RUNNER }}
+    container:
+      image: ghcr.io/sessrumnir/python-uv:3.14.9@sha256:c9e7c9d3f2737dc4c3df12ea43fd39171869bc9d1e2cce25e84b9d2e65b5be80
     outputs:
       images: ${{ steps.select.outputs.images }}
       main: >-
