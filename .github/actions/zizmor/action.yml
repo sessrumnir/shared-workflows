@@ -3,6 +3,6 @@ name: zizmor
 description: zizmor over the workflows and actions
 runs:
   using: docker
-  image: docker://ghcr.io/sessrumnir/zizmor:1.31.1@sha256:bf3db158751b2e3e13bd748e7d3fa422e39253d816623855b9577646829ed86a
+  image: docker://ghcr.io/sessrumnir/zizmor:1.31.1@sha256:e6b8dc1a68e6e95f686da65116c1dd1d9eb43ae6470d8e4c51e279777404fb26
   args:
     - "."

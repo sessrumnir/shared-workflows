@@ -3,7 +3,7 @@ name: trivy
 description: trivy's secret and misconfiguration scan, offline
 runs:
   using: docker
-  image: docker://ghcr.io/sessrumnir/trivy:0.76.1@sha256:70ffbde2d97941f2defdd4fa0b5b6a39391150f99c703cc1164fb80971dd9e93
+  image: docker://ghcr.io/sessrumnir/trivy:0.76.1@sha256:8e18958289f86c946a57040b4659695c076f234eccfee0579df96cfa99ce8473
   args:
     - "filesystem"
     - "--scanners"
