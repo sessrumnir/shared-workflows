@@ -40,7 +40,6 @@ jobs:
           persist-credentials: false
       - uses: $/.github/actions/files
       - uses: $/.github/actions/actionlint
-      - uses: $/.github/actions/zizmor
       - uses: $/.github/actions/gitleaks
       - uses: $/.github/actions/renovate-config-validator
       - uses: $/.github/actions/markdownlint
@@ -50,6 +49,23 @@ jobs:
         uses: $/.github/actions/checkov
       - if: inputs.trivy
         uses: $/.github/actions/trivy
+
+  zizmor:
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    runs-on: ${{ github.event.repository.private && (vars.JOBS_RUNNER || vars.PRIVATE_RUNNER) || 'ubuntu-latest' }}
+    container:
+      image: ghcr.io/sessrumnir/zizmor:1.31.1@sha256:13d36a467b0c3db5731e03ca56dc2451143dfc56b19b8c77fb738957b1f5bd78
+    defaults:
+      run:
+        shell: sh
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: zizmor
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: zizmor .
 
   make:
     if: inputs.make-targets != ''

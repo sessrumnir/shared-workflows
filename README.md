@@ -35,9 +35,11 @@ repositories.
 
 - `lint.yml`: the common checks, each a container action under
   `.github/actions/` with a pinned tool image and no network or Docker
-  daemon needed: file hygiene, actionlint, zizmor, gitleaks, the Renovate
-  config validator and markdownlint, then optionally hadolint on the root
-  `Containerfile`, checkov and trivy. A private repository runs them on
+  daemon needed: file hygiene, actionlint, gitleaks, the Renovate config
+  validator and markdownlint, then optionally hadolint on the root
+  `Containerfile`, checkov and trivy. zizmor runs in its own job with its
+  image as the job container, so it can reach GitHub, and gets the job's
+  own read-only token for its online audits. A private repository runs them on
   `JOBS_RUNNER`, a runner that starts each step as its own container
   without Docker (ARC's Kubernetes container mode), or on `PRIVATE_RUNNER`
   where that is unset; public ones on GitHub-hosted runners. `make-targets`
