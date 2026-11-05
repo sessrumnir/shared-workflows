@@ -3,7 +3,7 @@ name: markdownlint
 description: markdownlint over every Markdown file but the changelog
 runs:
   using: docker
-  image: docker://ghcr.io/sessrumnir/markdownlint:0.49.1@sha256:864209724ce5d503c0e9e0ed975fe0012ad929aedfe866e73524d73e72c33b31
+  image: docker://ghcr.io/sessrumnir/markdownlint:0.49.1@sha256:270f76bff6935820b84fbbe546cd0f68850e7368383601b66d1ac66f5c618d20
   args:
     - "--dot"
     - "--ignore"
