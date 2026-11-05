@@ -54,7 +54,7 @@ jobs:
     timeout-minutes: ${{ inputs.timeout-minutes }}
     runs-on: ${{ github.event.repository.private && (vars.JOBS_RUNNER || vars.PRIVATE_RUNNER) || 'ubuntu-latest' }}
     container:
-      image: ghcr.io/sessrumnir/zizmor:1.31.1@sha256:26ad48b954fefc54d83e0d39a1768c43689529eab36138f2fdd0b4b294ccd450
+      image: ghcr.io/sessrumnir/zizmor:1.31.1@sha256:13d36a467b0c3db5731e03ca56dc2451143dfc56b19b8c77fb738957b1f5bd78
     defaults:
       run:
         shell: sh
