@@ -3,6 +3,6 @@ name: renovate-config-validator
 description: Renovate's validator, strict, over the repository's config
 runs:
   using: docker
-  image: docker://ghcr.io/sessrumnir/renovate-config-validator:44.176.1@sha256:632b040031c78e297780da5eb9998e1015ebe2fab837abba8c0a9b73ce5d2694
+  image: docker://ghcr.io/sessrumnir/renovate-config-validator:44.176.1@sha256:c6641341dbbaf524a2bfaca6e20d5e202a33697b99ed34365954d528abed7813
   args:
     - "--strict"
