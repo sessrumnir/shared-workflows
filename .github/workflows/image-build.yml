@@ -25,7 +25,7 @@ jobs:
     timeout-minutes: 5
     runs-on: ${{ vars.JOBS_RUNNER || vars.PRIVATE_RUNNER }}
     container:
-      image: ghcr.io/sessrumnir/python-uv:3.14.9@sha256:c9e7c9d3f2737dc4c3df12ea43fd39171869bc9d1e2cce25e84b9d2e65b5be80
+      image: ghcr.io/sessrumnir/python-uv:3.14.10@sha256:f4c0fdab97757d92f60d34a697a572c17689355d4c4ed0e9299134b8cc0bd83e
     defaults:
       run:
         shell: bash
@@ -163,7 +163,7 @@ jobs:
         env:
           TOKEN: ${{ github.token }}
           ACTOR: ${{ github.actor }}
-          HADOLINT: ghcr.io/${{ github.repository_owner }}/hadolint:2.15.1@sha256:245ee3625a6b98e12dc7d4755d250aa0b76bb7944d774225777f49b518c99d5b
+          HADOLINT: ghcr.io/${{ github.repository_owner }}/hadolint:2.15.1@sha256:faffc04cd1c82084ebab3c2bcdd347cc15050aa4ec46acf32a4ae4593947b4b9
         run: |
           set -euo pipefail
           login=$(mktemp -d)
@@ -190,7 +190,7 @@ jobs:
           printf '%s' "${version}" > "${RUNNER_TEMP}/version"
       - name: Scan and describe
         env:
-          TRIVY: ghcr.io/${{ github.repository_owner }}/trivy:0.76.1@sha256:3d8c7ed14d86cc871ab557da6a97f8f146eeaf92008ab5effbc3b79fb2989c30
+          TRIVY: ghcr.io/${{ github.repository_owner }}/trivy:0.76.2@sha256:2f24ac4c5ad1d215c5fb2acd23630aa833e6f8540cc1dbcaee44dd5888df32f0
         run: |
           set -euo pipefail
           mkdir -p "${RUNNER_TEMP}/trivy"
