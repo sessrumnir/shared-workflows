@@ -3,7 +3,7 @@ name: gitleaks
 description: gitleaks over the checkout
 runs:
   using: docker
-  image: docker://ghcr.io/sessrumnir/gitleaks:8.30.1@sha256:6dc10fa54e1cbe4597cb88a1137c40980a1dce29df8f46a5d3d972ec67218fda
+  image: docker://ghcr.io/sessrumnir/gitleaks:8.30.1@sha256:61067e6072671ed92729e37de5b50e75b034962b1b667eb0b75b660d2d190e3f
   args:
     - "dir"
     - "--redact"
