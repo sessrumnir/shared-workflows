@@ -15,7 +15,7 @@ jobs:
     timeout-minutes: 5
     runs-on: ${{ github.event.repository.private && (vars.JOBS_RUNNER || vars.PRIVATE_RUNNER) || 'ubuntu-latest' }}
     container:
-      image: ghcr.io/sessrumnir/python-uv:3.14.10@sha256:f4c0fdab97757d92f60d34a697a572c17689355d4c4ed0e9299134b8cc0bd83e
+      image: ghcr.io/sessrumnir/python-uv:3.14.10@sha256:8123303ccc1ffca8b351e175b85c6ba5ad2742512053cf3b977ee7054f623316
     defaults:
       run:
         shell: bash

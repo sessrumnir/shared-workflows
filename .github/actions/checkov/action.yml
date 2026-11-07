@@ -3,7 +3,7 @@ name: checkov
 description: checkov over the checkout
 runs:
   using: docker
-  image: docker://ghcr.io/sessrumnir/checkov:3.3.27@sha256:5150e81fe641cfbdbe5893f2429823af742a64e5c62455197e970f88e5bcd491
+  image: docker://ghcr.io/sessrumnir/checkov:3.3.27@sha256:75140b757f5559b11354ebb868d8013df2cc11d544534f2753c1e4b8974e4c6d
   args:
     - "--directory"
     - "."

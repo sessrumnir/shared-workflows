@@ -3,7 +3,7 @@ name: files
 description: merge conflict markers, YAML syntax, final newlines and trailing whitespace in every text file
 runs:
   using: docker
-  image: docker://ghcr.io/sessrumnir/pre-commit-hooks:6.0.0@sha256:1388b0a71995ae442dde21dbeb3ea915893a983fa682feb9649e9b0e229a9661
+  image: docker://ghcr.io/sessrumnir/pre-commit-hooks:6.0.0@sha256:55a8be5ff34b35ccca6ac8e6fb746d32fbf36afe024620b7a9c39369e489d5e2
   entrypoint: sh
   env:
     GIT_CONFIG_COUNT: "1"
