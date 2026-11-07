@@ -33,7 +33,7 @@ jobs:
     timeout-minutes: ${{ inputs.timeout-minutes }}
     runs-on: ${{ github.event.repository.private && (vars.JOBS_RUNNER || vars.PRIVATE_RUNNER) || 'ubuntu-latest' }}
     container:
-      image: ghcr.io/sessrumnir/python-uv:3.14.9@sha256:c9e7c9d3f2737dc4c3df12ea43fd39171869bc9d1e2cce25e84b9d2e65b5be80
+      image: ghcr.io/sessrumnir/python-uv:3.14.10@sha256:f4c0fdab97757d92f60d34a697a572c17689355d4c4ed0e9299134b8cc0bd83e
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -54,7 +54,7 @@ jobs:
     timeout-minutes: ${{ inputs.timeout-minutes }}
     runs-on: ${{ github.event.repository.private && (vars.JOBS_RUNNER || vars.PRIVATE_RUNNER) || 'ubuntu-latest' }}
     container:
-      image: ghcr.io/sessrumnir/zizmor:1.31.1@sha256:88bb01fdf4110bdb8262de4aa5eb23daf97f4598f2b371e83c9b8b252f7007fa
+      image: ghcr.io/sessrumnir/zizmor:1.31.1@sha256:b1c7c9c185f50e2034d611c72ef5a8aaf8f87b51b0e7cd0c5f93eaa72c60aa8c
     defaults:
       run:
         shell: sh
