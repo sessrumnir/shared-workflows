@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.26.0](https://github.com/sessrumnir/shared-workflows/compare/v0.25.1...v0.26.0) (2026-11-07)
+
+
+### Features
+
+* run zizmor online in its own lint job ([#46](https://github.com/sessrumnir/shared-workflows/issues/46)) ([313369c](https://github.com/sessrumnir/shared-workflows/commit/313369c6370395ecca0d80e158a38fb74af5f754))
+
 ## [0.25.1](https://github.com/sessrumnir/shared-workflows/compare/v0.25.0...v0.25.1) (2026-11-04)
 
 
