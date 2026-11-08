@@ -79,9 +79,11 @@ jobs:
           echo "images: ${images}"
 
   # Builds each image on a builder runner, which holds a BuildKit client key and runs no repository
-  # code: checkout, build, upload of the image tarball. Only main's push, schedule and dispatch runs
+  # code: checkout, build, save of the image tarball. Only main's push, schedule and dispatch runs
   # use BUILD_RUNNER; everything else, pull requests included, builds on PR_BUILD_RUNNER with a
-  # BuildKit of its own, and fails if that variable is unset.
+  # BuildKit of its own, and fails if that variable is unset. Tarballs pass between the jobs through
+  # the Actions cache, keyed by run and attempt: unlike artifacts, it does not count against the
+  # plan's storage.
   build:
     needs: changes
     if: needs.changes.outputs.images != '[]'
@@ -124,14 +126,13 @@ jobs:
           if [ "${FRESH}" = true ]; then
             fresh=(--no-cache --pull)
           fi
+          mkdir -p "${RUNNER_TEMP}/image"
           docker buildx build "${fresh[@]}" --file "${DIR}/Containerfile" \
-            --output "type=docker,dest=${RUNNER_TEMP}/image.tar" --tag "${REF}:stable" "${DIR}"
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+            --output "type=docker,dest=${RUNNER_TEMP}/image/image.tar" --tag "${REF}:stable" "${DIR}"
+      - uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          name: build-${{ matrix.image }}
-          path: ${{ runner.temp }}/image.tar
-          if-no-files-found: error
-          retention-days: 1
+          path: ${{ runner.temp }}/image
+          key: image-build/${{ github.run_id }}/${{ matrix.image }}/${{ github.run_attempt }}
 
   # Lints, tests, scans and describes each built image on an ordinary runner, which holds no BuildKit
   # credential. An image whose build failed has no tarball, so only its own test fails.
@@ -173,21 +174,23 @@ jobs:
           rm -rf "${login}"
           docker run --rm --interactive --volume "${PWD}/.hadolint.yaml:/hadolint.yaml:ro" \
             "${HADOLINT}" --config /hadolint.yaml - < "${DIR}/Containerfile"
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          name: build-${{ matrix.image }}
-          path: ${{ runner.temp }}
+          path: ${{ runner.temp }}/image
+          key: image-build/${{ github.run_id }}/${{ matrix.image }}/${{ github.run_attempt }}
+          restore-keys: image-build/${{ github.run_id }}/${{ matrix.image }}/
+          fail-on-cache-miss: true
       - name: Load and test
         run: |
           set -euo pipefail
-          docker load --input "${RUNNER_TEMP}/image.tar"
+          docker load --input "${RUNNER_TEMP}/image/image.tar"
           "${DIR}/test.sh" "${REF}:stable" | tee "${RUNNER_TEMP}/test.log"
           version=$(sed -n 's/^version=//p' "${RUNNER_TEMP}/test.log" | tail -n 1)
           if [ -n "${version}" ] && ! [[ ${version} =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
             echo "::error::test.sh printed version=${version}, expected digits and dots"
             exit 1
           fi
-          printf '%s' "${version}" > "${RUNNER_TEMP}/version"
+          printf '%s' "${version}" > "${RUNNER_TEMP}/image/version"
       - name: Scan and describe
         env:
           TRIVY: ghcr.io/${{ github.repository_owner }}/trivy:0.76.2@sha256:6abbba2aa60a9b7176927b3c6654bca5c59a2d2983c5797e80ca7257b8cd2db8
@@ -198,28 +201,21 @@ jobs:
             docker run --rm --read-only --tmpfs /tmp --cap-drop ALL --security-opt no-new-privileges \
               --user "$(id -u):$(id -g)" --env HOME=/tmp --workdir /src \
               --volume "${PWD}:/src:ro" --volume "${RUNNER_TEMP}/trivy:/cache" \
-              --volume "${RUNNER_TEMP}/image.tar:/image.tar:ro" \
+              --volume "${RUNNER_TEMP}/image/image.tar:/image.tar:ro" \
               "${TRIVY}" image --cache-dir /cache --input /image.tar "$@"
           }
           trivy --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 --no-progress
-          trivy --format spdx-json --quiet > "${RUNNER_TEMP}/sbom.spdx.json"
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+          trivy --format spdx-json --quiet > "${RUNNER_TEMP}/image/sbom.spdx.json"
+      - uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        if: inputs.push && needs.changes.outputs.main == 'true'
         with:
-          name: sbom-${{ matrix.image }}
-          path: ${{ runner.temp }}/sbom.spdx.json
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: inputs.push
-        with:
-          name: tested-${{ matrix.image }}
-          path: |
-            ${{ runner.temp }}/version
-            ${{ runner.temp }}/sbom.spdx.json
-          if-no-files-found: error
-          retention-days: 1
+          path: ${{ runner.temp }}/image
+          key: image-tested/${{ github.run_id }}/${{ matrix.image }}/${{ github.run_attempt }}
 
-  # Pushes what test passed, from main only, and never checks out or runs repository code. An image
-  # whose test failed has no tested artifact, so only its own push fails. Each pushed digest is signed
-  # keyless with the workflow's GitHub identity, and its SBOM attached as a signed attestation.
+  # Pushes what test passed, from main only, and never checks out or runs repository code. It takes
+  # the tarball, version and SBOM together from the tested cache entry, so it pushes exactly what test
+  # passed, and an image whose test failed has none, so only its own push fails. Each pushed digest is
+  # signed keyless with the workflow's GitHub identity, and its SBOM attached as a signed attestation.
   push:
     needs: [changes, test]
     if: >-
@@ -242,14 +238,12 @@ jobs:
       REF: ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}
       COSIGN: ghcr.io/${{ github.repository_owner }}/cosign:3.1.4@sha256:80b19f2ee34c42c3567062b77858c40990212ca53eb38b09512c3bc4a56be5d6
     steps:
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          name: build-${{ matrix.image }}
           path: ${{ runner.temp }}/image
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: tested-${{ matrix.image }}
-          path: ${{ runner.temp }}/image
+          key: image-tested/${{ github.run_id }}/${{ matrix.image }}/${{ github.run_attempt }}
+          restore-keys: image-tested/${{ github.run_id }}/${{ matrix.image }}/
+          fail-on-cache-miss: true
       - name: Push
         id: push
         env:
