@@ -7,6 +7,7 @@ SANDBOX := docker run --rm --network none --read-only --tmpfs /tmp --cap-drop AL
 CHECK := $(SANDBOX) --volume "$(CURDIR):/src:ro"
 FIX := $(SANDBOX) --volume "$(CURDIR):/src"
 
+GIT_COMMON_DIR := $(shell git rev-parse --path-format=absolute --git-common-dir)
 TEXT := $(shell git grep -I --name-only -e '')
 YAML := $(filter %.yml %.yaml,$(TEXT))
 MARKDOWN := $(filter-out CHANGELOG.md,$(filter %.md,$(TEXT)))
@@ -17,7 +18,7 @@ RENOVATE := $(filter renovate.json renovate/%.json,$(TEXT))
 lint: files actions secrets renovate markdown
 
 files:
-	$(CHECK) $(PRE_COMMIT_HOOKS) check-merge-conflict $(TEXT)
+	$(CHECK) --volume "$(GIT_COMMON_DIR):$(GIT_COMMON_DIR):ro" $(PRE_COMMIT_HOOKS) check-merge-conflict $(TEXT)
 	$(CHECK) $(PRE_COMMIT_HOOKS) check-yaml $(YAML)
 	$(FIX) $(PRE_COMMIT_HOOKS) end-of-file-fixer $(TEXT)
 	$(FIX) $(PRE_COMMIT_HOOKS) trailing-whitespace-fixer $(TEXT)
