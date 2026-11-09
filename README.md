@@ -40,7 +40,10 @@ repositories.
   daemon needed: file hygiene, actionlint, gitleaks, the Renovate config
   validator and markdownlint, then optionally hadolint on the root
   `Containerfile`, checkov, trivy and lychee's link check (`lychee: true`,
-  configured by the repository's `.lychee.toml`). zizmor runs in its own
+  configured by the repository's `.lychee.toml`, offline there).
+  `lychee-online-config` names a second config with `offline = false`; a
+  `links` job on a runner with network then checks the external links too,
+  with the run's own read-only token. zizmor runs in its own
   job with its image as the job container, so it can reach GitHub, and gets
   the job's own read-only token for its online audits. A private repository
   runs them on `JOBS_RUNNER`, a runner that starts each step as its own container

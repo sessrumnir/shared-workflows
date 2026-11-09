@@ -24,6 +24,10 @@ on:
         description: Check links with lychee as .lychee.toml says; offline = true there keeps it off the network
         type: boolean
         default: false
+      lychee-online-config:
+        description: A lychee config with offline = false; when set, a job with network checks the external links too
+        type: string
+        default: ""
       make-targets:
         description: Repository-specific make targets that need Docker, such as a Go or Ansible linter
         type: string
@@ -72,6 +76,21 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: zizmor .
+
+  links:
+    if: inputs.lychee-online-config != ''
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    runs-on: ${{ github.event.repository.private && vars.PRIVATE_RUNNER || 'ubuntu-latest' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # The run's own read-only token, against GitHub's rate limits.
+      - uses: $/.github/actions/lychee
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          config: ${{ inputs.lychee-online-config }}
 
   make:
     if: inputs.make-targets != ''
