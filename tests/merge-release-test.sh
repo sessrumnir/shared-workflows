@@ -99,7 +99,7 @@ release
 check "two releases" "::error::several open release pull requests; merge one by hand." no
 
 release
-pr life-f0rm/ansible-x | jq -s . | serve "${pulls}"
+pr someone/ansible-x | jq -s . | serve "${pulls}"
 check "from a fork" "::error::the release pull request does not come from ${repo}:release-please--branches--main" no
 
 release
