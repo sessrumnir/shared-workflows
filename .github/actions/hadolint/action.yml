@@ -3,7 +3,7 @@ name: hadolint
 description: hadolint over the root Containerfile
 runs:
   using: docker
-  image: docker://ghcr.io/sessrumnir/hadolint:2.15.1@sha256:c8130072cd2f4dd646360b7d55d60d6e0ce3b9c0ac99ea6c4b0dcffe2235162f
+  image: docker://ghcr.io/sessrumnir/hadolint:2.15.1@sha256:8fbc8f651255ccd96a77e5bebf72bf5f10091ad96fca0c0ecd5ab0abc00a1661
   args:
     - "--config"
     - ".hadolint.yaml"
