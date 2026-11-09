@@ -3,4 +3,4 @@ name: actionlint
 description: actionlint over the workflows
 runs:
   using: docker
-  image: docker://ghcr.io/sessrumnir/actionlint:1.7.12@sha256:17b0e408d9a576ccd4d13adabce1417d84afda8ac1277a27490500cff1429bc1
+  image: docker://ghcr.io/sessrumnir/actionlint:1.7.12@sha256:6e9589a39d6503debfaaa0b7bbe96d24e69d9de03369caa522003ceb6bb6a413

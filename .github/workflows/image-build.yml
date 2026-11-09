@@ -131,7 +131,7 @@ jobs:
         env:
           TOKEN: ${{ github.token }}
           ACTOR: ${{ github.actor }}
-          HADOLINT: ghcr.io/${{ github.repository_owner }}/hadolint:2.15.1@sha256:c8130072cd2f4dd646360b7d55d60d6e0ce3b9c0ac99ea6c4b0dcffe2235162f
+          HADOLINT: ghcr.io/${{ github.repository_owner }}/hadolint:2.15.1@sha256:8fbc8f651255ccd96a77e5bebf72bf5f10091ad96fca0c0ecd5ab0abc00a1661
         run: |
           set -euo pipefail
           login=$(mktemp -d)
@@ -160,7 +160,7 @@ jobs:
           printf '%s' "${version}" > "${RUNNER_TEMP}/image/version"
       - name: Scan and describe
         env:
-          TRIVY: ghcr.io/${{ github.repository_owner }}/trivy:0.76.2@sha256:6abbba2aa60a9b7176927b3c6654bca5c59a2d2983c5797e80ca7257b8cd2db8
+          TRIVY: ghcr.io/${{ github.repository_owner }}/trivy:0.76.2@sha256:9173b95c8793a901ec13140ed771943cfff02e478582bd4ca2d9de099b4301d0
         run: |
           set -euo pipefail
           mkdir -p "${RUNNER_TEMP}/trivy"
