@@ -20,6 +20,10 @@ on:
         description: Scan for secrets and misconfigurations with trivy
         type: boolean
         default: true
+      lychee:
+        description: Check links with lychee as .lychee.toml says; offline = true there keeps it off the network
+        type: boolean
+        default: false
       make-targets:
         description: Repository-specific make targets that need Docker, such as a Go or Ansible linter
         type: string
@@ -49,6 +53,8 @@ jobs:
         uses: $/.github/actions/checkov
       - if: inputs.trivy
         uses: $/.github/actions/trivy
+      - if: inputs.lychee
+        uses: $/.github/actions/lychee
 
   zizmor:
     timeout-minutes: ${{ inputs.timeout-minutes }}
