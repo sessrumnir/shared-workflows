@@ -27,6 +27,11 @@ on:
       molecule-scenarios:
         type: string
         default: ""
+      # The collection's own lint make targets, run where the private
+      # collections are mirrored; lint.yml runs the common checks.
+      make-targets:
+        type: string
+        default: checkov ansible-lint
       # auto: a pull request, selected from its diff. fast: everything but
       # Molecule. full: everything.
       mode:
@@ -68,8 +73,17 @@ jobs:
           head: ${{ github.event.pull_request.head.sha }}
           scenarios: ${{ inputs.molecule-scenarios }}
 
-  # The commit stage in one job: Trivy on the clean checkout, then lint and the build, the Python
-  # tests and ansible-test, each when the mode asks for it.
+  # The common checks as container actions, on JOBS_RUNNER where the repository sets it.
+  lint:
+    needs: changes
+    if: needs.changes.outputs.mode != 'skip'
+    uses: $/.github/workflows/lint.yml
+    with:
+      # The collection's checkov needs the ansible framework and skips Molecule: a make target.
+      checkov: false
+
+  # The commit stage in one job: Trivy on the clean checkout, then the collection's own lint, the
+  # build, the Python tests and ansible-test, each when the mode asks for it.
   checks:
     needs: changes
     if: needs.changes.outputs.mode != 'skip'
@@ -133,13 +147,13 @@ jobs:
           for repo in ${REPOS//,/ }; do
             git config --global "url.file://${MIRRORS}/${repo}.insteadOf" "https://github.com/${OWNER}/${repo}"
           done
-      - if: runner.environment == 'github-hosted'
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.cache/pre-commit
-          key: pre-commit-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
       - name: Lint
-        run: make lint
+        if: inputs.make-targets != ''
+        env:
+          TARGETS: ${{ inputs.make-targets }}
+        run: |
+          read -ra targets <<< "${TARGETS}"
+          make -- "${targets[@]}"
       - name: Build
         if: contains(fromJSON('["full", "fast"]'), env.MODE)
         run: make build
@@ -159,9 +173,10 @@ jobs:
   # The acceptance stage: one job per selected scenario.
   molecule-scenario:
     name: molecule (${{ matrix.scenario }})
-    needs: [changes, checks]
+    needs: [changes, lint, checks]
     if: >-
       needs.changes.result == 'success'
+      && needs.lint.result == 'success'
       && needs.checks.result == 'success'
       && needs.changes.outputs.mode == 'full'
       && needs.changes.outputs.scenarios != '[]'
