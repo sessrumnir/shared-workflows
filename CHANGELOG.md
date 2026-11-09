@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.27.0](https://github.com/sessrumnir/shared-workflows/compare/v0.26.1...v0.27.0) (2026-11-09)
+
+
+### Features
+
+* **lint:** optional online external-link check with lychee ([#58](https://github.com/sessrumnir/shared-workflows/issues/58)) ([e8ef025](https://github.com/sessrumnir/shared-workflows/commit/e8ef0255576c017f2055525b95e4e73ed0ca3d12))
+* lychee link check as a container action, opt-in in lint.yml ([#56](https://github.com/sessrumnir/shared-workflows/issues/56)) ([2d5d862](https://github.com/sessrumnir/shared-workflows/commit/2d5d86299bba9ed37892b44c0fc3666c3b0137c5))
+
+
+### Bug Fixes
+
+* validate the Renovate presets as repository config ([#54](https://github.com/sessrumnir/shared-workflows/issues/54)) ([82142e6](https://github.com/sessrumnir/shared-workflows/commit/82142e69545e17f1570a005071567b5fd3b7e90a))
+
 ## [0.26.1](https://github.com/sessrumnir/shared-workflows/compare/v0.26.0...v0.26.1) (2026-11-09)
 
 
