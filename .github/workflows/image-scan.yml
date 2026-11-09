@@ -1,0 +1,91 @@
+---
+name: image-scan
+
+on:
+  workflow_call:
+    inputs:
+      # Directory holding one subdirectory per image; "." for the top level.
+      directory:
+        type: string
+        default: images
+      # The published tag of ghcr.io/<owner>/<image> to scan.
+      tag:
+        type: string
+        default: stable
+
+permissions:
+  contents: read
+
+jobs:
+  images:
+    timeout-minutes: 5
+    runs-on: ${{ github.event.repository.private && (vars.JOBS_RUNNER || vars.PRIVATE_RUNNER) || 'ubuntu-latest' }}
+    container:
+      image: ghcr.io/sessrumnir/python-uv:3.14.10@sha256:8123303ccc1ffca8b351e175b85c6ba5ad2742512053cf3b977ee7054f623316
+    outputs:
+      images: ${{ steps.select.outputs.images }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Select every image
+        id: select
+        uses: $/.github/actions/select-images
+        with:
+          mode: all
+          directory: ${{ inputs.directory }}
+          head: ${{ github.sha }}
+
+  # Scans what is published, with no build: a fixable finding is fixed by a version bump in a pull
+  # request, not by a rebuild.
+  scan:
+    needs: images
+    if: needs.images.outputs.images != '[]'
+    timeout-minutes: 30
+    runs-on: ${{ github.event.repository.private && (vars.JOBS_RUNNER || vars.PRIVATE_RUNNER) || 'ubuntu-latest' }}
+    permissions:
+      contents: read
+      packages: read
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ${{ fromJSON(needs.images.outputs.images) }}
+    container:
+      image: ghcr.io/sessrumnir/trivy:0.76.2@sha256:93718fadd8cd9ec0990b0e15967558219fbc10ced6ba05d6b04b9b727d306b0a
+    defaults:
+      run:
+        shell: sh
+    steps:
+      - id: day
+        run: echo "day=$(date -u +%F)" >> "${GITHUB_OUTPUT}"
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/trivy
+          key: trivy-image-db-${{ steps.day.outputs.day }}
+          restore-keys: trivy-image-db-
+      - name: trivy
+        env:
+          REF: ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}:${{ inputs.tag }}
+          TRIVY_USERNAME: ${{ github.actor }}
+          TRIVY_PASSWORD: ${{ github.token }}
+          TRIVY_DB_REPOSITORY: ${{ github.event.repository.private && vars.TRIVY_DB_REPOSITORY || '' }}
+        run: >-
+          trivy image --image-src remote --severity HIGH,CRITICAL --ignore-unfixed
+          --exit-code 1 --no-progress "${REF}"
+
+  # One open issue tracks the published images' scan: a failed scan opens it or adds the run to it,
+  # a clean one closes it.
+  report:
+    needs: scan
+    if: ${{ !cancelled() && needs.scan.result != 'skipped' }}
+    timeout-minutes: 5
+    runs-on: ${{ github.event.repository.private && vars.PRIVATE_RUNNER || 'ubuntu-latest' }}
+    permissions:
+      actions: read
+      issues: write
+    steps:
+      - name: Open, update or close the scan issue
+        uses: $/.github/actions/scan-issue
+        with:
+          token: ${{ github.token }}
+          result: ${{ needs.scan.result }}
