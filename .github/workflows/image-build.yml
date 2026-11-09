@@ -26,9 +26,6 @@ jobs:
     runs-on: ${{ vars.JOBS_RUNNER || vars.PRIVATE_RUNNER }}
     container:
       image: ghcr.io/sessrumnir/python-uv:3.14.10@sha256:8123303ccc1ffca8b351e175b85c6ba5ad2742512053cf3b977ee7054f623316
-    defaults:
-      run:
-        shell: bash
     outputs:
       images: ${{ steps.select.outputs.images }}
       main: >-
@@ -41,42 +38,12 @@ jobs:
           fetch-depth: 0
       - name: Select the images this run builds
         id: select
-        env:
-          MODE: ${{ inputs.mode }}
-          DIRECTORY: ${{ inputs.directory }}
-          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
-          HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
-        run: |
-          set -euo pipefail
-          case "${MODE}" in
-            auto | all) ;;
-            *) echo "::error::mode must be auto or all, not ${MODE}"; exit 1 ;;
-          esac
-          if ! [[ ${DIRECTORY} =~ ^(\.|[A-Za-z0-9_-]+(/[A-Za-z0-9_-]+)*)/?$ ]]; then
-            echo "::error::directory must be . or a relative path without dots, not ${DIRECTORY}"
-            exit 1
-          fi
-          prefix="${DIRECTORY%/}/"
-          if [ "${prefix}" = ./ ]; then prefix=""; fi
-          all=$(for file in "${prefix}"*/Containerfile; do
-                  if [ -f "${file}" ]; then basename "$(dirname "${file}")"; fi
-                done | jq -Rcs 'split("\n") | map(select(length > 0))')
-          if [ "${MODE}" = all ] || [ -z "${BASE}" ] || [ "${BASE}" = 0000000000000000000000000000000000000000 ]; then
-            images=${all}
-          else
-            images='[]'
-            while IFS= read -r file; do
-              if [[ ${file} == "${prefix}"* ]] && [[ ${file#"${prefix}"} =~ ^([^/]+)/ ]]; then
-                images=$(jq -c --arg image "${BASH_REMATCH[1]}" '. + [$image] | unique' <<< "${images}")
-              elif [ "${file}" = .hadolint.yaml ]; then
-                images=${all}
-                break
-              fi
-            done < <(git diff --name-only "${BASE}...${HEAD}")
-            images=$(jq -c --argjson all "${all}" '[.[] | select(. as $image | $all | index($image))]' <<< "${images}")
-          fi
-          echo "images=${images}" >> "${GITHUB_OUTPUT}"
-          echo "images: ${images}"
+        uses: $/.github/actions/select-images
+        with:
+          mode: ${{ inputs.mode }}
+          directory: ${{ inputs.directory }}
+          base: ${{ github.event.pull_request.base.sha || github.event.before }}
+          head: ${{ github.event.pull_request.head.sha || github.sha }}
 
   # Builds each image on a builder runner, which holds a BuildKit client key and runs no repository
   # code: checkout, build, save of the image tarball. Only main's push, schedule and dispatch runs

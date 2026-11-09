@@ -49,6 +49,16 @@ repositories.
 - `pr-title.yml`: requires a Conventional Commit pull request title. Runs
   where `lint.yml`'s checks run.
 
+The workflows keep their decisions out of the YAML: each is a bash script
+beside a composite action under `.github/actions/`, and `tests/` runs the
+scripts directly.
+
+- `select-images`: the images a push or pull request rebuilds.
+- `select-checks`: what a `collection-ci.yml` run needs (skip, lint, fast or
+  full) and which Molecule scenarios.
+- `merge-release`: `collection-train.yml`'s checks before it merges a
+  release.
+
 Pin a release by commit SHA:
 
 ```yaml
