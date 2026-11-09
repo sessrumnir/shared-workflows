@@ -5,7 +5,7 @@ repositories.
 
 ## Workflows
 
-- `collection-ci.yml`: Trivy, lint, build, `ansible-test` and Molecule for
+- `collection-ci.yml`: lint, build, `ansible-test` and Molecule for
   an Ansible collection. The common checks run through `lint.yml`; the
   collection's own lint, `make-targets` (default `checkov ansible-lint`),
   runs on `PRIVATE_RUNNER` beside the private collections it may need.
@@ -47,8 +47,13 @@ repositories.
   `links` job on a runner with network then checks the external links too,
   with the run's own read-only token. zizmor runs in its own
   job with its image as the job container, so it can reach GitHub, and gets
-  the job's own read-only token for its online audits. A private repository
-  runs them on `JOBS_RUNNER`, a runner that starts each step as its own container
+  the job's own read-only token for its online audits. `trivy-lockfiles` (on
+  by default) scans the lockfiles for fixable HIGH and CRITICAL
+  vulnerabilities in a job with the trivy image as its container. It
+  downloads the DB from Trivy's default source, or for a private repository
+  from the registry in the repository variable `TRIVY_DB_REPOSITORY`, and
+  caches it for a day. A private repository runs these jobs on `JOBS_RUNNER`,
+  a runner that starts each step as its own container
   without Docker (ARC's Kubernetes container mode), or on `PRIVATE_RUNNER`
   where that is unset; public ones on GitHub-hosted runners. `make-targets`
   adds the repository's own make targets, on `PRIVATE_RUNNER`.
