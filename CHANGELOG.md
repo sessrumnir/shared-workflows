@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.26.1](https://github.com/sessrumnir/shared-workflows/compare/v0.26.0...v0.26.1) (2026-11-09)
+
+
+### Bug Fixes
+
+* pass images and collections between jobs through the Actions cache ([#52](https://github.com/sessrumnir/shared-workflows/issues/52)) ([b21f022](https://github.com/sessrumnir/shared-workflows/commit/b21f022868c1091de0cd405b0157594204d03beb))
+
 ## [0.26.0](https://github.com/sessrumnir/shared-workflows/compare/v0.25.1...v0.26.0) (2026-11-07)
 
 
