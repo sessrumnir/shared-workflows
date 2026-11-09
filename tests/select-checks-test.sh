@@ -1,18 +1,13 @@
 #!/usr/bin/env bash
-# Runs the "Select what this run needs" step of collection-ci.yml against a scratch repository and
-# checks the mode and scenarios it picks for each kind of change.
+# Runs the select-checks action's script against a scratch repository and checks the mode and
+# scenarios it picks for each kind of change.
 set -euo pipefail
 
 root=$(cd "$(dirname "$0")/.." && pwd)
 work=$(mktemp -d)
 trap 'rm -rf "${work}"' EXIT
 
-python3 - "${root}/.github/workflows/collection-ci.yml" > "${work}/select.sh" <<'EOF'
-import sys
-import yaml
-steps = yaml.safe_load(open(sys.argv[1]))["jobs"]["changes"]["steps"]
-print(next(step["run"] for step in steps if step.get("id") == "select"))
-EOF
+script=${root}/.github/actions/select-checks/select-checks.sh
 
 repo=${work}/repo
 git init -q -b main "${repo}"
@@ -45,7 +40,7 @@ check() {
   fi
   got=$(cd "${repo}" && MODE=${mode} DRAFT=${draft} HEAD_REF=${ref} BASE=${pr_base} \
     HEAD=${pr_head} SCENARIOS=${scenarios} GITHUB_OUTPUT=/dev/null \
-    bash "${work}/select.sh" 2>&1 | tail -n 1) || true
+    bash "${script}" 2>&1 | tail -n 1) || true
   if [ "${got}" = "${expected}" ]; then
     echo "ok    ${name}"
   else

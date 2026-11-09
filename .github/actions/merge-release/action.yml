@@ -1,0 +1,19 @@
+---
+name: merge-release
+description: Squash-merge the open Release Please pull request when it releases exactly the tested main
+inputs:
+  token:
+    description: Token that may merge the pull request
+    required: true
+  tested-sha:
+    description: The main commit the full suite passed on
+    required: true
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        REPO: ${{ github.repository }}
+        TESTED: ${{ inputs.tested-sha }}
+      run: bash "${GITHUB_ACTION_PATH}/merge-release.sh"
