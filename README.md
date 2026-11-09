@@ -8,7 +8,8 @@ repositories.
 - `collection-ci.yml`: Trivy, lint, build, `ansible-test` and Molecule for
   an Ansible collection.
 - `collection-release.yml`: Release Please, then build, checksum and attest
-  a collection release.
+  a collection release; the tarball reaches the publish job through the
+  Actions cache.
 - `collection-train.yml`: merges a waiting collection release after a green
   nightly run.
 - `image-build.yml`: lint, build, test, scan and push the images under
@@ -19,8 +20,9 @@ repositories.
   runs, `PR_BUILD_RUNNER` (a separate BuildKit) for everything else; a
   pull request build fails when `PR_BUILD_RUNNER` is unset. The test, scan and
   SBOM run on `PRIVATE_RUNNER`, the scan and SBOM with the owner's pinned
-  `trivy` image. Each pushed image is signed keyless and carries its SBOM
-  as an attestation:
+  `trivy` image. The jobs hand the image on through the Actions cache, not
+  artifacts, so builds do not use the plan's storage. Each pushed image is
+  signed keyless and carries its SBOM as an attestation:
 
   ```sh
   cosign verify --certificate-oidc-issuer https://token.actions.githubusercontent.com \

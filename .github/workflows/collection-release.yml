@@ -45,7 +45,8 @@ jobs:
           token: ${{ steps.app.outputs.token }}
 
   # Builds the pushed commit, which Release Please just tagged, without write access; publish never
-  # runs repository code.
+  # runs repository code. The tarball reaches publish through the Actions cache, which, unlike
+  # artifacts, does not count against the plan's storage.
   build:
     needs: release-please
     if: needs.release-please.outputs.created == 'true'
@@ -93,12 +94,10 @@ jobs:
             git config --global "url.file://${MIRRORS}/${repo}.insteadOf" "https://github.com/${OWNER}/${repo}"
           done
       - run: make build
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      - uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          name: collection
           path: .ansible/dist/*.tar.gz
-          if-no-files-found: error
-          retention-days: 1
+          key: collection-release/${{ github.run_id }}/${{ github.run_attempt }}
 
   publish:
     needs: [release-please, build]
@@ -109,16 +108,18 @@ jobs:
       id-token: write
       attestations: write
     steps:
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          name: collection
-          path: dist
-      - run: cd dist && sha256sum ./*.tar.gz > SHA256SUMS
+          path: .ansible/dist/*.tar.gz
+          key: collection-release/${{ github.run_id }}/${{ github.run_attempt }}
+          restore-keys: collection-release/${{ github.run_id }}/
+          fail-on-cache-miss: true
+      - run: cd .ansible/dist && sha256sum ./*.tar.gz > SHA256SUMS
       - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         if: ${{ !github.event.repository.private }}
         with:
-          subject-path: dist/*.tar.gz
-      - run: gh release upload "${TAG}" dist/*.tar.gz dist/SHA256SUMS --repo "${REPO}"
+          subject-path: .ansible/dist/*.tar.gz
+      - run: gh release upload "${TAG}" .ansible/dist/*.tar.gz .ansible/dist/SHA256SUMS --repo "${REPO}"
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
