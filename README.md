@@ -6,7 +6,9 @@ repositories.
 ## Workflows
 
 - `collection-ci.yml`: Trivy, lint, build, `ansible-test` and Molecule for
-  an Ansible collection.
+  an Ansible collection. The common checks run through `lint.yml`; the
+  collection's own lint, `make-targets` (default `checkov ansible-lint`),
+  runs on `PRIVATE_RUNNER` beside the private collections it may need.
 - `collection-release.yml`: Release Please, then build, checksum and attest
   a collection release; the tarball reaches the publish job through the
   Actions cache.

@@ -7,3 +7,6 @@ paths:
   .github/workflows/ci.yml:
     ignore:
       - 'reusable workflow call "\$/\.github/workflows/lint\.yml" at "uses" is not following the format'
+  .github/workflows/collection-ci.yml:
+    ignore:
+      - 'reusable workflow call "\$/\.github/workflows/lint\.yml" at "uses" is not following the format'
