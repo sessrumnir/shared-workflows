@@ -9,15 +9,6 @@
         "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+) currentValue=(?<currentValue>\\S+)\\n\\S+_digest: \"(?<currentDigest>sha256:[a-f0-9]{64})\""
       ],
       "versioningTemplate": "docker"
-    },
-    {
-      "customType": "regex",
-      "managerFilePatterns": ["/^extensions/molecule/(.+/molecule|config)\\.yml$/"],
-      "matchStrings": [
-        "image: (?<depName>[^@\\s]+)@(?<currentDigest>sha256:[a-f0-9]{64})"
-      ],
-      "datasourceTemplate": "docker",
-      "currentValueTemplate": "latest"
     }
   ],
   "packageRules": [
