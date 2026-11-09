@@ -31,7 +31,7 @@ secrets:
 	$(CHECK) $(GITLEAKS) dir --redact --no-banner .
 
 renovate:
-	$(CHECK) $(RENOVATE_CONFIG_VALIDATOR) --strict $(RENOVATE)
+	$(CHECK) $(RENOVATE_CONFIG_VALIDATOR) --strict --no-global $(RENOVATE)
 
 markdown:
 	$(CHECK) $(MARKDOWNLINT) $(MARKDOWN)

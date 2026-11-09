@@ -68,6 +68,10 @@ Inputs and secrets are declared at the top of each workflow.
 - `local>sessrumnir/shared-workflows//renovate/default`
 - `local>sessrumnir/shared-workflows//renovate/collection`
 
+`make lint` validates both with `renovate-config-validator --strict
+--no-global`, as repository config, so a broken preset fails here before a
+release instead of stopping Renovate in every repository.
+
 ## Development
 
 ```sh
