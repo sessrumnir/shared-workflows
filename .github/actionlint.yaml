@@ -10,3 +10,10 @@ paths:
   .github/workflows/collection-ci.yml:
     ignore:
       - 'reusable workflow call "\$/\.github/workflows/lint\.yml" at "uses" is not following the format'
+      - 'specifying action "\$/\.github/actions/[a-z-]+" in invalid format because ref is missing'
+  .github/workflows/collection-train.yml:
+    ignore:
+      - 'specifying action "\$/\.github/actions/[a-z-]+" in invalid format because ref is missing'
+  .github/workflows/image-build.yml:
+    ignore:
+      - 'specifying action "\$/\.github/actions/[a-z-]+" in invalid format because ref is missing'

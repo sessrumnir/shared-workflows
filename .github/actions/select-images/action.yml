@@ -1,0 +1,32 @@
+---
+name: select-images
+description: The images a push or pull request rebuilds, as a JSON list
+inputs:
+  mode:
+    description: "auto: the images the diff changed; all: every image"
+    required: true
+  directory:
+    description: Directory holding one subdirectory per image; "." for the top level
+    required: true
+  base:
+    description: The commit the diff starts from; empty or zeros for every image
+    required: false
+    default: ""
+  head:
+    description: The commit the diff ends at
+    required: true
+outputs:
+  images:
+    description: JSON list of image directory names
+    value: ${{ steps.select.outputs.images }}
+runs:
+  using: composite
+  steps:
+    - id: select
+      shell: bash
+      env:
+        MODE: ${{ inputs.mode }}
+        DIRECTORY: ${{ inputs.directory }}
+        BASE: ${{ inputs.base }}
+        HEAD: ${{ inputs.head }}
+      run: bash "${GITHUB_ACTION_PATH}/select-images.sh"

@@ -1,0 +1,47 @@
+---
+name: select-checks
+description: What a collection-ci run needs, skip, lint, fast or full, and which Molecule scenarios
+inputs:
+  mode:
+    description: "auto: from the pull request's diff; fast: everything but Molecule; full: everything"
+    required: true
+  draft:
+    description: true for a draft pull request
+    required: false
+    default: ""
+  head-ref:
+    description: The pull request's head branch
+    required: false
+    default: ""
+  base:
+    description: The pull request's base commit
+    required: false
+    default: ""
+  head:
+    description: The pull request's head commit
+    required: false
+    default: ""
+  scenarios:
+    description: JSON list of Molecule scenarios; empty for every one on the shared Docker driver
+    required: false
+    default: ""
+outputs:
+  mode:
+    description: skip, lint, fast or full
+    value: ${{ steps.select.outputs.mode }}
+  scenarios:
+    description: JSON list of the Molecule scenarios to run
+    value: ${{ steps.select.outputs.scenarios }}
+runs:
+  using: composite
+  steps:
+    - id: select
+      shell: bash
+      env:
+        MODE: ${{ inputs.mode }}
+        DRAFT: ${{ inputs.draft }}
+        HEAD_REF: ${{ inputs.head-ref }}
+        BASE: ${{ inputs.base }}
+        HEAD: ${{ inputs.head }}
+        SCENARIOS: ${{ inputs.scenarios }}
+      run: bash "${GITHUB_ACTION_PATH}/select-checks.sh"

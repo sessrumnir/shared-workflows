@@ -41,15 +41,29 @@ repositories.
   `.github/actions/` with a pinned tool image and no network or Docker
   daemon needed: file hygiene, actionlint, gitleaks, the Renovate config
   validator and markdownlint, then optionally hadolint on the root
-  `Containerfile`, checkov and trivy. zizmor runs in its own job with its
-  image as the job container, so it can reach GitHub, and gets the job's
-  own read-only token for its online audits. A private repository runs them on
-  `JOBS_RUNNER`, a runner that starts each step as its own container
+  `Containerfile`, checkov, trivy and lychee's link check (`lychee: true`,
+  configured by the repository's `.lychee.toml`, offline there).
+  `lychee-online-config` names a second config with `offline = false`; a
+  `links` job on a runner with network then checks the external links too,
+  with the run's own read-only token. zizmor runs in its own
+  job with its image as the job container, so it can reach GitHub, and gets
+  the job's own read-only token for its online audits. A private repository
+  runs them on `JOBS_RUNNER`, a runner that starts each step as its own container
   without Docker (ARC's Kubernetes container mode), or on `PRIVATE_RUNNER`
   where that is unset; public ones on GitHub-hosted runners. `make-targets`
   adds the repository's own make targets, on `PRIVATE_RUNNER`.
 - `pr-title.yml`: requires a Conventional Commit pull request title. Runs
   where `lint.yml`'s checks run.
+
+The workflows keep their decisions out of the YAML: each is a bash script
+beside a composite action under `.github/actions/`, and `tests/` runs the
+scripts directly.
+
+- `select-images`: the images a push or pull request rebuilds.
+- `select-checks`: what a `collection-ci.yml` run needs (skip, lint, fast or
+  full) and which Molecule scenarios.
+- `merge-release`: `collection-train.yml`'s checks before it merges a
+  release.
 
 Pin a release by commit SHA:
 
@@ -65,6 +79,10 @@ Inputs and secrets are declared at the top of each workflow.
 
 - `local>sessrumnir/shared-workflows//renovate/default`
 - `local>sessrumnir/shared-workflows//renovate/collection`
+
+`make lint` validates both with `renovate-config-validator --strict
+--no-global`, as repository config, so a broken preset fails here before a
+release instead of stopping Renovate in every repository.
 
 ## Development
 

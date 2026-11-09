@@ -20,6 +20,14 @@ on:
         description: Scan for secrets and misconfigurations with trivy
         type: boolean
         default: true
+      lychee:
+        description: Check links with lychee as .lychee.toml says; offline = true there keeps it off the network
+        type: boolean
+        default: false
+      lychee-online-config:
+        description: A lychee config with offline = false; when set, a job with network checks the external links too
+        type: string
+        default: ""
       make-targets:
         description: Repository-specific make targets that need Docker, such as a Go or Ansible linter
         type: string
@@ -49,12 +57,14 @@ jobs:
         uses: $/.github/actions/checkov
       - if: inputs.trivy
         uses: $/.github/actions/trivy
+      - if: inputs.lychee
+        uses: $/.github/actions/lychee
 
   zizmor:
     timeout-minutes: ${{ inputs.timeout-minutes }}
     runs-on: ${{ github.event.repository.private && (vars.JOBS_RUNNER || vars.PRIVATE_RUNNER) || 'ubuntu-latest' }}
     container:
-      image: ghcr.io/sessrumnir/zizmor:1.31.1@sha256:030beff845bf9654d207c1d5e3d22d2ffff13ad3c410f77783a71341b630e943
+      image: ghcr.io/sessrumnir/zizmor:1.31.1@sha256:69fb8d39fcff4019f86bbe5d3fdf1690d41854df267ca3395d0020ce0bc958c7
     defaults:
       run:
         shell: sh
@@ -66,6 +76,21 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: zizmor .
+
+  links:
+    if: inputs.lychee-online-config != ''
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    runs-on: ${{ github.event.repository.private && vars.PRIVATE_RUNNER || 'ubuntu-latest' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # The run's own read-only token, against GitHub's rate limits.
+      - uses: $/.github/actions/lychee
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          config: ${{ inputs.lychee-online-config }}
 
   make:
     if: inputs.make-targets != ''

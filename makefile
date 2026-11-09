@@ -12,10 +12,11 @@ TEXT := $(shell git grep -I --name-only -e '')
 YAML := $(filter %.yml %.yaml,$(TEXT))
 MARKDOWN := $(filter-out CHANGELOG.md,$(filter %.md,$(TEXT)))
 RENOVATE := $(filter renovate.json renovate/%.json,$(TEXT))
+SCRIPTS := $(filter %.sh .githooks/%,$(TEXT))
 
-.PHONY: lint test hooks files actions secrets renovate markdown
+.PHONY: lint test hooks files actions scripts secrets renovate markdown
 
-lint: files actions secrets renovate markdown
+lint: files actions scripts secrets renovate markdown
 
 files:
 	$(CHECK) --volume "$(GIT_COMMON_DIR):$(GIT_COMMON_DIR):ro" $(PRE_COMMIT_HOOKS) check-merge-conflict $(TEXT)
@@ -27,17 +28,21 @@ actions:
 	$(CHECK) $(ACTIONLINT)
 	$(CHECK) $(ZIZMOR) .
 
+# shellcheck ships in the actionlint image.
+scripts:
+	$(CHECK) --entrypoint /usr/local/bin/shellcheck $(ACTIONLINT) $(SCRIPTS)
+
 secrets:
 	$(CHECK) $(GITLEAKS) dir --redact --no-banner .
 
 renovate:
-	$(CHECK) $(RENOVATE_CONFIG_VALIDATOR) --strict $(RENOVATE)
+	$(CHECK) $(RENOVATE_CONFIG_VALIDATOR) --strict --no-global $(RENOVATE)
 
 markdown:
 	$(CHECK) $(MARKDOWNLINT) $(MARKDOWN)
 
 test:
-	tests/select-test.sh
+	set -e; for test in tests/*-test.sh; do $$test; done
 
 # Runs make lint before every push.
 hooks:

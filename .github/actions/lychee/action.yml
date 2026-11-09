@@ -1,0 +1,20 @@
+---
+name: lychee
+description: lychee's link check over the checkout, as its config file says
+inputs:
+  config:
+    description: The lychee config file; offline = true there keeps the check off the network
+    required: false
+    default: .lychee.toml
+  files:
+    description: The files to check, as a glob lychee expands itself
+    required: false
+    default: "**/*.md"
+runs:
+  using: docker
+  image: docker://ghcr.io/sessrumnir/lychee:0.24.2@sha256:1d40b8f8f4387c284c99633c2f4d862aff21f94fd2b9b3a894222f5229b2cb20
+  args:
+    - "--no-progress"
+    - "--config"
+    - ${{ inputs.config }}
+    - ${{ inputs.files }}
