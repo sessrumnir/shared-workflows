@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.28.0](https://github.com/sessrumnir/shared-workflows/compare/v0.27.1...v0.28.0) (2026-11-10)
+
+
+### Features
+
+* **image-build:** hand main's images over through the CI registry ([#67](https://github.com/sessrumnir/shared-workflows/issues/67)) ([01c42db](https://github.com/sessrumnir/shared-workflows/commit/01c42db936ffdc32a5885bfc01b5fa8600d64f39))
+
 ## [0.27.1](https://github.com/sessrumnir/shared-workflows/compare/v0.27.0...v0.27.1) (2026-11-10)
 
 
