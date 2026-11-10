@@ -28,6 +28,13 @@ jobs:
       image: ghcr.io/sessrumnir/python-uv:3.14.10@sha256:8123303ccc1ffca8b351e175b85c6ba5ad2742512053cf3b977ee7054f623316
     outputs:
       images: ${{ steps.select.outputs.images }}
+      # registry: main hands its images to test and push through the CI registry (vars.CI_REGISTRY),
+      # cache: through the Actions cache as tarballs.
+      handoff: >-
+        ${{ vars.CI_REGISTRY != ''
+        && github.ref == 'refs/heads/main'
+        && contains(fromJSON('["push", "schedule", "workflow_dispatch"]'), github.event_name)
+        && 'registry' || 'cache' }}
       main: >-
         ${{ github.ref == 'refs/heads/main'
         && contains(fromJSON('["push", "schedule", "workflow_dispatch"]'), github.event_name) }}
@@ -46,11 +53,15 @@ jobs:
           head: ${{ github.event.pull_request.head.sha || github.sha }}
 
   # Builds each image on a builder runner, which holds a BuildKit client key and runs no repository
-  # code: checkout, build, save of the image tarball. Only main's push, schedule and dispatch runs
-  # use BUILD_RUNNER; everything else, pull requests included, builds on PR_BUILD_RUNNER with a
-  # BuildKit of its own, and fails if that variable is unset. Tarballs pass between the jobs through
-  # the Actions cache, keyed by run and attempt: unlike artifacts, it does not count against the
-  # plan's storage.
+  # code: checkout, build, hand-off. Only main's push, schedule and dispatch runs use BUILD_RUNNER;
+  # everything else, pull requests included, builds on PR_BUILD_RUNNER with a BuildKit of its own,
+  # and fails if that variable is unset.
+  #
+  # With vars.CI_REGISTRY, main pushes the image to the CI registry as run-<run>-<attempt> and keeps
+  # its layer cache there; only main's builder holds a robot that may push, so nothing a pull request
+  # builds can reach main's images or cache. Pull requests read that cache and, like every caller
+  # without the variable, pass a tarball through the Actions cache, keyed by run and attempt: unlike
+  # artifacts, it does not count against the plan's storage.
   build:
     needs: changes
     if: needs.changes.outputs.images != '[]'
@@ -74,35 +85,63 @@ jobs:
         run: |
           echo "::error::Set BUILD_RUNNER: main builds only on the main builder"
           exit 1
+      - name: Log in to the CI registry
+        id: registry
+        if: vars.CI_REGISTRY != ''
+        uses: $/.github/actions/ci-registry
+        with:
+          registry: ${{ vars.CI_REGISTRY }}
+          image: ${{ matrix.image }}
+          config: ${{ runner.temp }}/docker
+          required: ${{ needs.changes.outputs.handoff == 'registry' }}
       - name: Connect to the runner's rootless BuildKit
         run: |
           set -euo pipefail
+          export DOCKER_CONFIG="${RUNNER_TEMP}/docker"
           server=${BUILDKIT_HOST#tcp://}
           server=${server%:*}
           docker buildx create --name ci --use --driver remote \
             --driver-opt "cacert=${HOME}/.buildkit/ca.crt,cert=${HOME}/.buildkit/tls.crt,key=${HOME}/.buildkit/tls.key,servername=${server}" \
             "${BUILDKIT_HOST}"
-      # An image that will be pushed is built without the BuildKit cache and with fresh base images,
-      # so nothing an earlier build left in the cache can reach it.
+      # An image that will be pushed is built with fresh base images, and without any cache but
+      # main's own in the CI registry, so nothing a pull request or an earlier local build left can
+      # reach it.
       - name: Build
         env:
           FRESH: ${{ inputs.push && needs.changes.outputs.main == 'true' }}
+          HANDOFF: ${{ needs.changes.outputs.handoff }}
+          CI_IMAGE: ${{ steps.registry.outputs.image }}
+          CACHE: ${{ steps.registry.outputs.ready == 'true' && format('{0}:buildcache', steps.registry.outputs.image) || '' }}
+          TAG: run-${{ github.run_id }}-${{ github.run_attempt }}
         run: |
           set -euo pipefail
-          fresh=()
+          export DOCKER_CONFIG="${RUNNER_TEMP}/docker"
+          trap 'rm -rf "${DOCKER_CONFIG}"' EXIT
+          if [ "${HANDOFF}" = registry ]; then
+            docker buildx build --pull --file "${DIR}/Containerfile" \
+              --cache-from "type=registry,ref=${CACHE}" \
+              --cache-to "type=registry,ref=${CACHE},mode=max,image-manifest=true,oci-mediatypes=true" \
+              --output "type=image,name=${CI_IMAGE}:${TAG},push=true" "${DIR}"
+            exit 0
+          fi
+          options=()
           if [ "${FRESH}" = true ]; then
-            fresh=(--no-cache --pull)
+            options=(--no-cache --pull)
+          elif [ -n "${CACHE}" ]; then
+            options=(--cache-from "type=registry,ref=${CACHE}")
           fi
           mkdir -p "${RUNNER_TEMP}/image"
-          docker buildx build "${fresh[@]}" --file "${DIR}/Containerfile" \
+          docker buildx build "${options[@]}" --file "${DIR}/Containerfile" \
             --output "type=docker,dest=${RUNNER_TEMP}/image/image.tar" --tag "${REF}:stable" "${DIR}"
       - uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        if: needs.changes.outputs.handoff == 'cache'
         with:
           path: ${{ runner.temp }}/image
           key: image-build/${{ github.run_id }}/${{ matrix.image }}/${{ github.run_attempt }}
 
   # Lints, tests, scans and describes each built image on an ordinary runner, which holds no BuildKit
-  # credential. An image whose build failed has no tarball, so only its own test fails.
+  # credential and at most a pull-only CI registry robot. An image whose build failed has no tarball
+  # or run tag, so only its own test fails.
   test:
     needs: [changes, build]
     if: >-
@@ -142,15 +181,57 @@ jobs:
           docker run --rm --interactive --volume "${PWD}/.hadolint.yaml:/hadolint.yaml:ro" \
             "${HADOLINT}" --config /hadolint.yaml - < "${DIR}/Containerfile"
       - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        if: needs.changes.outputs.handoff == 'cache'
         with:
           path: ${{ runner.temp }}/image
           key: image-build/${{ github.run_id }}/${{ matrix.image }}/${{ github.run_attempt }}
           restore-keys: image-build/${{ github.run_id }}/${{ matrix.image }}/
           fail-on-cache-miss: true
-      - name: Load and test
+      - name: Log in to the CI registry
+        id: registry
+        if: needs.changes.outputs.handoff == 'registry'
+        uses: $/.github/actions/ci-registry
+        with:
+          registry: ${{ vars.CI_REGISTRY }}
+          image: ${{ matrix.image }}
+          config: ${{ runner.temp }}/ci-registry
+      # A rerun of a failed test finds the image under the latest attempt that built it.
+      - name: Pull from the CI registry
+        if: needs.changes.outputs.handoff == 'registry'
+        env:
+          CI_IMAGE: ${{ steps.registry.outputs.image }}
         run: |
           set -euo pipefail
-          docker load --input "${RUNNER_TEMP}/image/image.tar"
+          trap 'rm -rf "${RUNNER_TEMP}/ci-registry"' EXIT
+          image=''
+          for attempt in $(seq "${GITHUB_RUN_ATTEMPT}" -1 1); do
+            if docker --config "${RUNNER_TEMP}/ci-registry" pull --quiet "${CI_IMAGE}:run-${GITHUB_RUN_ID}-${attempt}"; then
+              image=${CI_IMAGE}:run-${GITHUB_RUN_ID}-${attempt}
+              break
+            fi
+          done
+          if [ -z "${image}" ]; then
+            echo "::error::no ${CI_IMAGE}:run-${GITHUB_RUN_ID}-<attempt> in the CI registry"
+            exit 1
+          fi
+          digest=$(docker image inspect --format '{{json .RepoDigests}}' "${image}" \
+            | jq -r --arg repo "${CI_IMAGE}" '.[] | select(startswith($repo + "@"))')
+          if ! [[ ${digest} =~ ^"${CI_IMAGE}"@sha256:[0-9a-f]{64}$ ]]; then
+            echo "::error::unexpected digest reference ${digest}"
+            exit 1
+          fi
+          docker tag "${image}" "${REF}:stable"
+          mkdir -p "${RUNNER_TEMP}/image"
+          docker save --output "${RUNNER_TEMP}/image/image.tar" "${REF}:stable"
+          printf '%s' "${digest}" > "${RUNNER_TEMP}/image/digest"
+      - name: Load and test
+        env:
+          HANDOFF: ${{ needs.changes.outputs.handoff }}
+        run: |
+          set -euo pipefail
+          if [ "${HANDOFF}" = cache ]; then
+            docker load --input "${RUNNER_TEMP}/image/image.tar"
+          fi
           "${DIR}/test.sh" "${REF}:stable" | tee "${RUNNER_TEMP}/test.log"
           version=$(sed -n 's/^version=//p' "${RUNNER_TEMP}/test.log" | tail -n 1)
           if [ -n "${version}" ] && ! [[ ${version} =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
@@ -173,6 +254,10 @@ jobs:
           }
           trivy --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 --no-progress
           trivy --format spdx-json --quiet > "${RUNNER_TEMP}/image/sbom.spdx.json"
+      # The CI registry keeps the image itself; push copies it from there by digest.
+      - name: Drop the tarball the CI registry holds
+        if: needs.changes.outputs.handoff == 'registry'
+        run: rm "${RUNNER_TEMP}/image/image.tar"
       - uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         if: inputs.push && needs.changes.outputs.main == 'true'
         with:
@@ -180,9 +265,11 @@ jobs:
           key: image-tested/${{ github.run_id }}/${{ matrix.image }}/${{ github.run_attempt }}
 
   # Pushes what test passed, from main only, and never checks out or runs repository code. It takes
-  # the tarball, version and SBOM together from the tested cache entry, so it pushes exactly what test
-  # passed, and an image whose test failed has none, so only its own push fails. Each pushed digest is
-  # signed keyless with the workflow's GitHub identity, and its SBOM attached as a signed attestation.
+  # the tarball or CI registry digest, version and SBOM together from the tested cache entry, so it
+  # pushes exactly what test passed, and an image whose test failed has none, so only its own push
+  # fails. A CI registry digest is copied unchanged, so GHCR serves the very digest test pulled. Each
+  # pushed digest is signed keyless with the workflow's GitHub identity, and its SBOM attached as a
+  # signed attestation.
   push:
     needs: [changes, test]
     if: >-
@@ -204,6 +291,7 @@ jobs:
     env:
       REF: ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}
       COSIGN: ghcr.io/${{ github.repository_owner }}/cosign:3.1.4@sha256:80b19f2ee34c42c3567062b77858c40990212ca53eb38b09512c3bc4a56be5d6
+      CRANE: ghcr.io/${{ github.repository_owner }}/crane:0.22.1@sha256:d290b830fb6bf4e671307b8e3c8f4765543b71864d6252447cd4735f3bf38661
     steps:
       - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
@@ -211,12 +299,23 @@ jobs:
           key: image-tested/${{ github.run_id }}/${{ matrix.image }}/${{ github.run_attempt }}
           restore-keys: image-tested/${{ github.run_id }}/${{ matrix.image }}/
           fail-on-cache-miss: true
+      - name: Log in to the CI registry
+        id: registry
+        if: needs.changes.outputs.handoff == 'registry'
+        uses: $/.github/actions/ci-registry
+        with:
+          registry: ${{ vars.CI_REGISTRY }}
+          image: ${{ matrix.image }}
+          config: ${{ runner.temp }}/docker
+      # crane runs on the Docker daemon, which mounts the CI registry's CA at the runner's path.
       - name: Push
         id: push
         env:
           TOKEN: ${{ github.token }}
           ACTOR: ${{ github.actor }}
           IMAGE: ${{ runner.temp }}/image
+          HANDOFF: ${{ needs.changes.outputs.handoff }}
+          CI_IMAGE: ${{ steps.registry.outputs.image }}
         run: |
           set -euo pipefail
           version=$(cat "${IMAGE}/version")
@@ -224,7 +323,6 @@ jobs:
             echo "::error::version ${version}, expected digits and dots"
             exit 1
           fi
-          docker load --input "${IMAGE}/image.tar"
           export DOCKER_CONFIG="${RUNNER_TEMP}/docker"
           printf '%s' "${TOKEN}" | docker login ghcr.io --username "${ACTOR}" --password-stdin
           build="${version:+${version}-}$(date -u +%Y%m%d%H%M%S)"
@@ -232,6 +330,26 @@ jobs:
           if [ -n "${version}" ]; then
             tags+=("${version}")
           fi
+          if [ "${HANDOFF}" = registry ]; then
+            source=$(cat "${IMAGE}/digest")
+            if ! [[ ${source} =~ ^"${CI_IMAGE}"@(sha256:[0-9a-f]{64})$ ]]; then
+              echo "::error::unexpected CI registry digest ${source}"
+              exit 1
+            fi
+            sha=${BASH_REMATCH[1]}
+            crane=(docker run --rm --read-only --tmpfs /tmp --user "$(id -u):$(id -g)"
+              --cap-drop ALL --security-opt no-new-privileges
+              --env HOME=/tmp --env DOCKER_CONFIG=/docker --env SSL_CERT_DIR=/etc/ssl/certs:/etc/ci-registry-ca
+              --volume "${DOCKER_CONFIG}:/docker:ro" --volume /etc/ci-registry-ca:/etc/ci-registry-ca:ro "${CRANE}")
+            "${crane[@]}" copy "${source}" "${REF}:${tags[0]}"
+            for tag in "${tags[@]:1}"; do
+              "${crane[@]}" tag "${REF}@${sha}" "${tag}"
+            done
+            echo "::notice::${REF}: ${tags[*]}"
+            echo "digest=${REF}@${sha}" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+          docker load --input "${IMAGE}/image.tar"
           for tag in "${tags[@]}"; do
             docker tag "${REF}:stable" "${REF}:${tag}"
             docker push "${REF}:${tag}"

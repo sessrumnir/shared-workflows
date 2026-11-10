@@ -23,7 +23,16 @@ repositories.
   pull request build fails when `PR_BUILD_RUNNER` is unset. The test, scan and
   SBOM run on `PRIVATE_RUNNER`, the scan and SBOM with the owner's pinned
   `trivy` image. The jobs hand the image on through the Actions cache, not
-  artifacts, so builds do not use the plan's storage. Each pushed image is
+  artifacts, so builds do not use the plan's storage.
+
+  With the repository variable `CI_REGISTRY` (host and optional port),
+  `main` hands the image on through `<CI_REGISTRY>/<owner>-ci/<repo>/<image>`
+  instead and keeps its BuildKit layer cache there as `buildcache`. The push
+  job copies the tested digest to GHCR unchanged. Pull requests only read
+  that cache. The runners mount the registry's robot as
+  `/etc/ci-registry/{username,password}`: a robot that may push on `main`'s
+  builder only, a pull-only one elsewhere. They also mount its CA in
+  `/etc/ci-registry-ca`. Each pushed image is
   signed keyless and carries its SBOM as an attestation:
 
   ```sh
