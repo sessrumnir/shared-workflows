@@ -25,14 +25,15 @@ repositories.
   `trivy` image. The jobs hand the image on through the Actions cache, not
   artifacts, so builds do not use the plan's storage.
 
-  With the repository variable `CI_REGISTRY` (host and optional port),
-  `main` hands the image on through `<CI_REGISTRY>/<owner>-ci/<repo>/<image>`
-  instead and keeps its BuildKit layer cache there as `buildcache`. The push
-  job copies the tested digest to GHCR unchanged. Pull requests only read
-  that cache. The runners mount the registry's robot as
-  `/etc/ci-registry/{username,password}`: a robot that may push on `main`'s
-  builder only, a pull-only one elsewhere. They also mount its CA in
-  `/etc/ci-registry-ca`. Each pushed image is
+  With the repository variable `CI_REGISTRY` set to `true`, `main` hands the
+  image on through `<registry>/<owner>-ci/<repo>/<image>` instead and keeps
+  its BuildKit layer cache there as `buildcache`. The push job copies the
+  tested digest to GHCR unchanged. Pull requests only read that cache. The
+  runners mount the registry's robot as
+  `/etc/ci-registry/{registry,username,password}`: a robot that may push on
+  `main`'s builder only, a pull-only one elsewhere. The registry host comes
+  only from the runner, and the jobs mask it in their logs. The runners also
+  mount the registry's CA in `/etc/ci-registry-ca`. Each pushed image is
   signed keyless and carries its SBOM as an attestation:
 
   ```sh
@@ -85,7 +86,7 @@ scripts directly.
   full) and which Molecule scenarios.
 - `merge-release`: `collection-train.yml`'s checks before it merges a
   release.
-- `ci-registry`: logs in to `CI_REGISTRY` with the mounted robot.
+- `ci-registry`: logs in to the mounted robot's registry and masks its host.
 - `image-build`, `image-load`, `image-test`, `image-push`: the steps of
   `image-build.yml`'s build, test and push jobs, for both hand-offs.
 

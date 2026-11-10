@@ -2,9 +2,6 @@
 name: ci-registry
 description: Adds the runner's CI registry robot to a Docker config and names the run's CI image
 inputs:
-  registry:
-    description: The CI registry's host and port
-    required: true
   image:
     description: The image's directory name
     required: true
@@ -20,7 +17,7 @@ outputs:
     description: true when the login was added
     value: ${{ steps.login.outputs.ready }}
   image:
-    description: The image's repository in the CI registry, <registry>/<owner>-ci/<repository>/<image>
+    description: The image's repository in the robot's registry, <registry>/<owner>-ci/<repository>/<image>
     value: ${{ steps.login.outputs.image }}
 runs:
   using: composite
@@ -28,7 +25,6 @@ runs:
     - id: login
       shell: bash
       env:
-        REGISTRY: ${{ inputs.registry }}
         IMAGE: ${{ inputs.image }}
         CONFIG: ${{ inputs.config }}
         REQUIRED: ${{ inputs.required }}
