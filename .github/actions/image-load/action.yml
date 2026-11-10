@@ -1,0 +1,37 @@
+---
+name: image-load
+description: Puts the built image into the runner's Docker as <ref>:stable and names a tarball to scan
+inputs:
+  handoff:
+    description: "registry: pull the run's tag from <ci-image>; cache: load <output>/image.tar"
+    required: true
+  ref:
+    description: The image's GHCR repository
+    required: true
+  ci-image:
+    description: The image's repository in the CI registry, from the ci-registry action
+    required: false
+    default: ""
+  config:
+    description: Directory of the Docker config with the CI registry login; removed afterwards
+    required: false
+    default: ""
+  output:
+    description: Directory of the hand-off; a pulled image's digest goes to <output>/digest
+    required: true
+outputs:
+  tarball:
+    description: The image as a tarball, for the scan
+    value: ${{ steps.load.outputs.tarball }}
+runs:
+  using: composite
+  steps:
+    - id: load
+      shell: bash
+      env:
+        HANDOFF: ${{ inputs.handoff }}
+        REF: ${{ inputs.ref }}
+        CI_IMAGE: ${{ inputs.ci-image }}
+        CONFIG: ${{ inputs.config }}
+        OUTPUT: ${{ inputs.output }}
+      run: bash "${GITHUB_ACTION_PATH}/load.sh"

@@ -1,0 +1,39 @@
+---
+name: image-test
+description: Lints, tests, scans and describes one image already in the runner's Docker
+inputs:
+  directory:
+    description: The image's directory, holding its Containerfile and test.sh
+    required: true
+  ref:
+    description: The image's GHCR repository; the image is <ref>:stable
+    required: true
+  tarball:
+    description: The image as a tarball, for the scan
+    required: true
+  output:
+    description: Directory the version and the SBOM go to
+    required: true
+  hadolint:
+    description: The hadolint image, pinned by digest
+    required: true
+  trivy:
+    description: The trivy image, pinned by digest
+    required: true
+  token:
+    description: Token that may read the owner's packages, to pull hadolint
+    required: true
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        DIRECTORY: ${{ inputs.directory }}
+        REF: ${{ inputs.ref }}
+        TARBALL: ${{ inputs.tarball }}
+        OUTPUT: ${{ inputs.output }}
+        HADOLINT: ${{ inputs.hadolint }}
+        TRIVY: ${{ inputs.trivy }}
+        TOKEN: ${{ inputs.token }}
+        ACTOR: ${{ github.actor }}
+      run: bash "${GITHUB_ACTION_PATH}/image-test.sh"

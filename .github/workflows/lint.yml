@@ -68,7 +68,7 @@ jobs:
     timeout-minutes: ${{ inputs.timeout-minutes }}
     runs-on: ${{ github.event.repository.private && (vars.JOBS_RUNNER || vars.PRIVATE_RUNNER) || 'ubuntu-latest' }}
     container:
-      image: ghcr.io/sessrumnir/zizmor:1.31.1@sha256:69fb8d39fcff4019f86bbe5d3fdf1690d41854df267ca3395d0020ce0bc958c7
+      image: ghcr.io/sessrumnir/zizmor:1.31.1@sha256:701fd52770c901d77abff41f2a2e599972a24cd8792722535d888698f884fdaf
     defaults:
       run:
         shell: sh
@@ -86,7 +86,7 @@ jobs:
     timeout-minutes: ${{ inputs.timeout-minutes }}
     runs-on: ${{ github.event.repository.private && (vars.JOBS_RUNNER || vars.PRIVATE_RUNNER) || 'ubuntu-latest' }}
     container:
-      image: ghcr.io/sessrumnir/trivy:0.76.2@sha256:93718fadd8cd9ec0990b0e15967558219fbc10ced6ba05d6b04b9b727d306b0a
+      image: ghcr.io/sessrumnir/trivy:0.76.2@sha256:018e4f7248bbc600a0871853a3d3cc671a7b1fa77d674a23ee79c0a2baac04cd
     defaults:
       run:
         shell: sh
