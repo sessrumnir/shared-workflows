@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.27.1](https://github.com/sessrumnir/shared-workflows/compare/v0.27.0...v0.27.1) (2026-11-10)
+
+
+### Bug Fixes
+
+* **renovate:** drop the Molecule manager that kept the tag in the package name ([#61](https://github.com/sessrumnir/shared-workflows/issues/61)) ([27d7e04](https://github.com/sessrumnir/shared-workflows/commit/27d7e04b793fe5fbc3a8e12c64c8a6831f0ddd5a))
+
 ## [0.27.0](https://github.com/sessrumnir/shared-workflows/compare/v0.26.1...v0.27.0) (2026-11-09)
 
 
