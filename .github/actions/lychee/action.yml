@@ -12,7 +12,7 @@ inputs:
     default: "**/*.md"
 runs:
   using: docker
-  image: docker://ghcr.io/sessrumnir/lychee:0.24.2@sha256:1d40b8f8f4387c284c99633c2f4d862aff21f94fd2b9b3a894222f5229b2cb20
+  image: docker://ghcr.io/sessrumnir/lychee:0.24.2@sha256:42e94541cadc1b3094fcf8b3f9992ad976804b6e0bdcae73dd370cd8263b0cc7
   args:
     - "--no-progress"
     - "--config"
