@@ -73,6 +73,9 @@ scripts directly.
   full) and which Molecule scenarios.
 - `merge-release`: `collection-train.yml`'s checks before it merges a
   release.
+- `ci-registry`: logs in to `CI_REGISTRY` with the mounted robot.
+- `image-build`, `image-load`, `image-test`, `image-push`: the steps of
+  `image-build.yml`'s build, test and push jobs, for both hand-offs.
 
 Pin a release by commit SHA:
 

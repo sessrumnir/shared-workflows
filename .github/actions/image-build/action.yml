@@ -1,0 +1,45 @@
+---
+name: image-build
+description: Builds one image on the runner's rootless BuildKit and hands it on
+inputs:
+  directory:
+    description: The image's directory, holding its Containerfile
+    required: true
+  ref:
+    description: The image's GHCR repository; the tarball is tagged <ref>:stable
+    required: true
+  handoff:
+    description: "registry: push to <ci-image>:<tag> with main's layer cache; cache: write a tarball"
+    required: true
+  ci-image:
+    description: The image's repository in the CI registry, from the ci-registry action
+    required: false
+    default: ""
+  cache:
+    description: "true: a tarball build reads the CI registry's layer cache"
+    required: false
+    default: "false"
+  fresh:
+    description: "true: a tarball build uses no cache and pulls fresh base images"
+    required: false
+    default: "false"
+  config:
+    description: Directory of the Docker config with the CI registry login; removed afterwards
+    required: true
+  output:
+    description: Directory the tarball goes to
+    required: true
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        DIRECTORY: ${{ inputs.directory }}
+        REF: ${{ inputs.ref }}
+        HANDOFF: ${{ inputs.handoff }}
+        CI_IMAGE: ${{ inputs.ci-image }}
+        CACHE: ${{ inputs.cache }}
+        FRESH: ${{ inputs.fresh }}
+        CONFIG: ${{ inputs.config }}
+        OUTPUT: ${{ inputs.output }}
+      run: bash "${GITHUB_ACTION_PATH}/build.sh"
