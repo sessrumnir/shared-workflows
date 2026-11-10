@@ -20,6 +20,10 @@ on:
         description: Scan for secrets and misconfigurations with trivy
         type: boolean
         default: true
+      trivy-lockfiles:
+        description: Scan the lockfiles for vulnerabilities with trivy, which downloads its DB
+        type: boolean
+        default: true
       lychee:
         description: Check links with lychee as .lychee.toml says; offline = true there keeps it off the network
         type: boolean
@@ -76,6 +80,33 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: zizmor .
+
+  lockfiles:
+    if: inputs.trivy-lockfiles
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    runs-on: ${{ github.event.repository.private && (vars.JOBS_RUNNER || vars.PRIVATE_RUNNER) || 'ubuntu-latest' }}
+    container:
+      image: ghcr.io/sessrumnir/trivy:0.76.2@sha256:018e4f7248bbc600a0871853a3d3cc671a7b1fa77d674a23ee79c0a2baac04cd
+    defaults:
+      run:
+        shell: sh
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - id: day
+        run: echo "day=$(date -u +%F)" >> "${GITHUB_OUTPUT}"
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/trivy/db
+          key: trivy-db-${{ steps.day.outputs.day }}
+          restore-keys: trivy-db-
+      - name: trivy
+        env:
+          TRIVY_DB_REPOSITORY: ${{ github.event.repository.private && vars.TRIVY_DB_REPOSITORY || '' }}
+        run: >-
+          trivy filesystem --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed
+          --exit-code 1 --skip-java-db-update --no-progress .
 
   links:
     if: inputs.lychee-online-config != ''

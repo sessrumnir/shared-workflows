@@ -82,8 +82,8 @@ jobs:
       # The collection's checkov needs the ansible framework and skips Molecule: a make target.
       checkov: false
 
-  # The commit stage in one job: Trivy on the clean checkout, then the collection's own lint, the
-  # build, the Python tests and ansible-test, each when the mode asks for it.
+  # The commit stage in one job: the collection's own lint, the build, the Python tests and
+  # ansible-test, each when the mode asks for it.
   checks:
     needs: changes
     if: needs.changes.outputs.mode != 'skip'
@@ -96,18 +96,6 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Trivy
-        if: contains(fromJSON('["full", "fast"]'), env.MODE)
-        env:
-          TRIVY: ghcr.io/${{ github.repository_owner }}/trivy:0.76.2@sha256:018e4f7248bbc600a0871853a3d3cc671a7b1fa77d674a23ee79c0a2baac04cd
-        run: |
-          set -euo pipefail
-          mkdir -p "${RUNNER_TEMP}/trivy"
-          docker run --rm --read-only --tmpfs /tmp --cap-drop ALL --security-opt no-new-privileges \
-            --user "$(id -u):$(id -g)" --env HOME=/tmp --workdir /src \
-            --volume "${PWD}:/src:ro" --volume "${RUNNER_TEMP}/trivy:/cache" \
-            "${TRIVY}" filesystem --cache-dir /cache --scanners vuln,misconfig,secret \
-            --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 --no-progress .
       - &app-token
         name: Create a GitHub App token for private sessrumnir collections
         id: app
