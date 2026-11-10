@@ -1,0 +1,21 @@
+---
+name: scan-issue
+description: Open or update the published images' scan issue on a failed scan, close it on a clean one
+inputs:
+  token:
+    description: Token that may read the run's jobs and write issues
+    required: true
+  result:
+    description: The scan job's result, success or failure
+    required: true
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        REPO: ${{ github.repository }}
+        RESULT: ${{ inputs.result }}
+        RUN_ID: ${{ github.run_id }}
+        RUN_ATTEMPT: ${{ github.run_attempt }}
+      run: bash "${GITHUB_ACTION_PATH}/scan-issue.sh"

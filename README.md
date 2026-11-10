@@ -46,6 +46,13 @@ repositories.
   branch are checked separately. `verify-attestation --type spdxjson` with
   the same flags checks the SBOM.
 
+- `image-scan.yml`: scans the published `ghcr.io/<owner>/<image>:stable`
+  (input `tag`) of every image under `images/<name>/` with trivy, with no
+  build: a fixable finding is fixed by a version bump in a pull request. The
+  trivy DB is cached for a day; a private repository may pull it from
+  `TRIVY_DB_REPOSITORY`. One open issue tracks the result: a failed scan
+  opens it or comments the failed images on it, a clean one closes it. The
+  caller grants `packages: read`, `issues: write` and `actions: read`.
 - `lint.yml`: the common checks, each a container action under
   `.github/actions/` with a pinned tool image and no network or Docker
   daemon needed: file hygiene, actionlint, gitleaks, the Renovate config
