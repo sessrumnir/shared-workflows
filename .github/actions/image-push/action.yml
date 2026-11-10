@@ -1,0 +1,51 @@
+---
+name: image-push
+description: Pushes one tested image to GHCR with its tags, signs it and attaches its SBOM
+inputs:
+  ref:
+    description: The image's GHCR repository
+    required: true
+  ci-image:
+    description: The image's repository in the CI registry, when the tested image is a digest there
+    required: false
+    default: ""
+  image:
+    description: Directory of the tested hand-off (digest or image.tar, version, sbom.spdx.json)
+    required: true
+  config:
+    description: Directory of the Docker config, with the CI registry login if any; removed afterwards
+    required: true
+  crane:
+    description: The crane image, pinned by digest
+    required: true
+  cosign:
+    description: The cosign image, pinned by digest
+    required: true
+  token:
+    description: Token that may write the owner's packages
+    required: true
+outputs:
+  digest:
+    description: The pushed image, <ref>@sha256:<digest>
+    value: ${{ steps.push.outputs.digest }}
+runs:
+  using: composite
+  steps:
+    - id: push
+      shell: bash
+      env:
+        REF: ${{ inputs.ref }}
+        CI_IMAGE: ${{ inputs.ci-image }}
+        IMAGE: ${{ inputs.image }}
+        CONFIG: ${{ inputs.config }}
+        CRANE: ${{ inputs.crane }}
+        TOKEN: ${{ inputs.token }}
+        ACTOR: ${{ github.actor }}
+      run: bash "${GITHUB_ACTION_PATH}/push.sh"
+    - shell: bash
+      env:
+        IMAGE: ${{ inputs.image }}
+        CONFIG: ${{ inputs.config }}
+        COSIGN: ${{ inputs.cosign }}
+        DIGEST: ${{ steps.push.outputs.digest }}
+      run: bash "${GITHUB_ACTION_PATH}/sign.sh"
