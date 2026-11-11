@@ -28,10 +28,10 @@ jobs:
       image: ghcr.io/sessrumnir/python-uv:3.14.10@sha256:8123303ccc1ffca8b351e175b85c6ba5ad2742512053cf3b977ee7054f623316
     outputs:
       images: ${{ steps.select.outputs.images }}
-      # registry: main hands its images to test and push through the CI registry (vars.CI_REGISTRY),
-      # cache: through the Actions cache as tarballs.
+      # registry: with vars.CI_REGISTRY true, main hands its images to test and push through the
+      # CI registry; cache: through the Actions cache as tarballs.
       handoff: >-
-        ${{ vars.CI_REGISTRY != ''
+        ${{ vars.CI_REGISTRY == 'true'
         && github.ref == 'refs/heads/main'
         && contains(fromJSON('["push", "schedule", "workflow_dispatch"]'), github.event_name)
         && 'registry' || 'cache' }}
@@ -55,9 +55,10 @@ jobs:
   # Builds each image on a builder runner, which holds a BuildKit client key and runs no repository
   # code. Only main's push, schedule and dispatch runs use BUILD_RUNNER; everything else, pull
   # requests included, builds on PR_BUILD_RUNNER with a BuildKit of its own, and fails if that
-  # variable is unset. With vars.CI_REGISTRY main hands the image on through the CI registry and
-  # keeps its layer cache there; only main's builder holds a robot that may push. Everything else
-  # hands a tarball on through the Actions cache, which, unlike artifacts, uses no plan storage.
+  # variable is unset. With vars.CI_REGISTRY true main hands the image on through the CI registry,
+  # whose host only the runner's robot names, and keeps its layer cache there; only main's builder
+  # holds a robot that may push. Everything else hands a tarball on through the Actions cache,
+  # which, unlike artifacts, uses no plan storage.
   build:
     needs: changes
     if: needs.changes.outputs.images != '[]'
@@ -80,10 +81,9 @@ jobs:
           exit 1
       - name: Log in to the CI registry
         id: registry
-        if: vars.CI_REGISTRY != ''
+        if: vars.CI_REGISTRY == 'true'
         uses: $/.github/actions/ci-registry
         with:
-          registry: ${{ vars.CI_REGISTRY }}
           image: ${{ matrix.image }}
           config: ${{ runner.temp }}/docker
           required: ${{ needs.changes.outputs.handoff == 'registry' }}
@@ -142,7 +142,6 @@ jobs:
         if: needs.changes.outputs.handoff == 'registry'
         uses: $/.github/actions/ci-registry
         with:
-          registry: ${{ vars.CI_REGISTRY }}
           image: ${{ matrix.image }}
           config: ${{ runner.temp }}/ci-registry
       - name: Load
@@ -207,7 +206,6 @@ jobs:
         if: needs.changes.outputs.handoff == 'registry'
         uses: $/.github/actions/ci-registry
         with:
-          registry: ${{ vars.CI_REGISTRY }}
           image: ${{ matrix.image }}
           config: ${{ runner.temp }}/docker
       - name: Push, sign and attach the SBOM
