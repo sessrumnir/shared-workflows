@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.29.0](https://github.com/sessrumnir/shared-workflows/compare/v0.28.0...v0.29.0) (2026-11-11)
+
+
+### Features
+
+* **image-build:** take the CI registry host from the runner's robot ([#69](https://github.com/sessrumnir/shared-workflows/issues/69)) ([165e5f0](https://github.com/sessrumnir/shared-workflows/commit/165e5f00a745fd6c90c2095dffd7b586ab5665d5))
+
 ## [0.28.0](https://github.com/sessrumnir/shared-workflows/compare/v0.27.1...v0.28.0) (2026-11-10)
 
 
