@@ -86,7 +86,7 @@ jobs:
     timeout-minutes: ${{ inputs.timeout-minutes }}
     runs-on: ${{ github.event.repository.private && (vars.JOBS_RUNNER || vars.PRIVATE_RUNNER) || 'ubuntu-latest' }}
     container:
-      image: ghcr.io/sessrumnir/trivy:0.76.2@sha256:018e4f7248bbc600a0871853a3d3cc671a7b1fa77d674a23ee79c0a2baac04cd
+      image: ghcr.io/sessrumnir/trivy:0.76.2@sha256:453ada62e59aaec9e3952563f03d1c868242c83a794bafb0989c8dc8f1e5bd03
     defaults:
       run:
         shell: sh
