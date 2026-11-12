@@ -125,7 +125,7 @@ jobs:
         image: ${{ fromJSON(needs.changes.outputs.images) }}
     env:
       HADOLINT: ghcr.io/${{ github.repository_owner }}/hadolint:2.15.1@sha256:99ca76978300d1e0d13593baf3b5e821d76afcc1dc6d21515f8982cd30e562ac
-      TRIVY: ghcr.io/${{ github.repository_owner }}/trivy:0.76.2@sha256:018e4f7248bbc600a0871853a3d3cc671a7b1fa77d674a23ee79c0a2baac04cd
+      TRIVY: ghcr.io/${{ github.repository_owner }}/trivy:0.76.2@sha256:453ada62e59aaec9e3952563f03d1c868242c83a794bafb0989c8dc8f1e5bd03
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -193,7 +193,7 @@ jobs:
         image: ${{ fromJSON(needs.changes.outputs.images) }}
     env:
       COSIGN: ghcr.io/${{ github.repository_owner }}/cosign:3.1.4@sha256:80b19f2ee34c42c3567062b77858c40990212ca53eb38b09512c3bc4a56be5d6
-      CRANE: ghcr.io/${{ github.repository_owner }}/crane:0.22.1@sha256:b1c7a8132357e30a5ab64077e1074a4c7458068194a31b426751cb28c8c6b272
+      CRANE: ghcr.io/${{ github.repository_owner }}/crane:0.22.1@sha256:03c28cd3fbfb86791a65dcca88e6dd72ae2cbefebf903412ac1d0a7a4116dd74
     steps:
       - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
