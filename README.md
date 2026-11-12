@@ -87,6 +87,9 @@ scripts directly.
 - `merge-release`: `collection-train.yml`'s checks before it merges a
   release.
 - `ci-registry`: logs in to the mounted robot's registry and masks its host.
+- `collections-cache`: restores the collections from `requirements.yml` out
+  of the runner's `~/.cache`, keyed on the file's hash, so `make deps` asks
+  no Galaxy server; a miss installs them and stores them there.
 - `image-build`, `image-load`, `image-test`, `image-push`: the steps of
   `image-build.yml`'s build, test and push jobs, for both hand-offs.
 
