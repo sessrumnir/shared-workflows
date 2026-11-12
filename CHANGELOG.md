@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.30.0](https://github.com/sessrumnir/shared-workflows/compare/v0.29.0...v0.30.0) (2026-11-12)
+
+
+### Features
+
+* **collection-ci:** keep the installed collections in the runner's cache ([#72](https://github.com/sessrumnir/shared-workflows/issues/72)) ([74f98e0](https://github.com/sessrumnir/shared-workflows/commit/74f98e0266f0ae7fd0477b137ba10a9cf26d010a))
+
 ## [0.29.0](https://github.com/sessrumnir/shared-workflows/compare/v0.28.0...v0.29.0) (2026-11-11)
 
 
