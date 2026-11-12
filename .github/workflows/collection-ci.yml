@@ -135,6 +135,9 @@ jobs:
           for repo in ${REPOS//,/ }; do
             git config --global "url.file://${MIRRORS}/${repo}.insteadOf" "https://github.com/${OWNER}/${repo}"
           done
+      - &collections-cache
+        name: Restore the installed collections from the runner cache
+        uses: $/.github/actions/collections-cache
       - name: Lint
         if: inputs.make-targets != ''
         env:
@@ -178,6 +181,7 @@ jobs:
       - *checkout
       - *app-token
       - *mirror-private-collections
+      - *collections-cache
       - run: make test SCENARIO="${SCENARIO}"
         env:
           SCENARIO: ${{ matrix.scenario }}

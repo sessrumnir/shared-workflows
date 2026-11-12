@@ -1,0 +1,7 @@
+name: collections-cache
+description: Restores the collections installed from requirements.yml from the runner's cache, or installs and stores them
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: bash "${GITHUB_ACTION_PATH}/collections-cache.sh"
