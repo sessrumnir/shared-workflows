@@ -33,7 +33,7 @@ if [ "$(api commits/main | jq -r .sha)" != "${TESTED}" ]; then
 fi
 compare=$(api "compare/${base}...${head}")
 files=$(jq -er 'if (.files | length) > 0 and (.files | length) < 300 then .files[].filename else error("no complete file list") end' <<< "${compare}")
-other=$(grep -v -x -E 'CHANGELOG\.md|\.release-please-manifest\.json|galaxy\.yml|version\.txt' <<< "${files}" || true)
+other=$(grep -v -x -E 'CHANGELOG\.md|\.release-please-manifest\.json|galaxy\.yml|(.+/)?version\.txt' <<< "${files}" || true)
 if [ -n "${other}" ]; then
   echo "::error::#${number} changes more than release metadata: ${other//$'\n'/ }"
   exit 1
