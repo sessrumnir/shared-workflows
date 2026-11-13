@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.31.0](https://github.com/sessrumnir/shared-workflows/compare/v0.30.0...v0.31.0) (2026-11-13)
+
+
+### Features
+
+* **renovate:** seven-day minimum release age, null for the no-wait rules ([#74](https://github.com/sessrumnir/shared-workflows/issues/74)) ([3a831c6](https://github.com/sessrumnir/shared-workflows/commit/3a831c6cfa63da97eadef5d7abe36f21387085b1))
+
+
+### Bug Fixes
+
+* **merge-release:** accept a version.txt below the top level ([#76](https://github.com/sessrumnir/shared-workflows/issues/76)) ([78c7d05](https://github.com/sessrumnir/shared-workflows/commit/78c7d05c5cea0315623bba617c9cee13a805a112))
+
 ## [0.30.0](https://github.com/sessrumnir/shared-workflows/compare/v0.29.0...v0.30.0) (2026-11-12)
 
 
