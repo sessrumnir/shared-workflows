@@ -12,8 +12,10 @@ repositories.
 - `collection-release.yml`: Release Please, then build, checksum and attest
   a collection release; the tarball reaches the publish job through the
   Actions cache.
-- `collection-train.yml`: merges a waiting collection release after a green
-  nightly run.
+- `collection-train.yml`: merges a waiting Release Please release after a
+  green nightly run, in a collection or any other repository, when the
+  release pull request changes only `CHANGELOG.md`,
+  `.release-please-manifest.json`, `galaxy.yml` or a `version.txt`.
 - `image-build.yml`: lint, build, test, scan and push the images under
   `images/<name>/`; `test.sh` may print `version=<x>` to tag `<x>`. The
   changed images are selected on `JOBS_RUNNER`, else `PRIVATE_RUNNER`. The

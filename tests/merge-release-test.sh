@@ -115,6 +115,10 @@ files CHANGELOG.md roles/x/tasks/main.yml plugins/x.py | serve "compare/${base}.
 check "more than metadata" "::error::#7 changes more than release metadata: roles/x/tasks/main.yml plugins/x.py" no
 
 release
+files CHANGELOG.md .release-please-manifest.json x/version.txt | serve "compare/${base}...${head}"
+check "a version file in a subdirectory" "Merged #7: 0.4.1 -> 0.5.0" "${merge}"
+
+release
 files | serve "compare/${base}...${head}"
 check "no file list" "jq: error (at <stdin>:1): no complete file list" no
 
