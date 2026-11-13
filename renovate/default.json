@@ -6,12 +6,12 @@
     ":semanticCommits"
   ],
   "labels": ["dependencies"],
-  "minimumReleaseAge": "3 days",
+  "minimumReleaseAge": "7 days",
   "schedule": ["before 6am on monday"],
   "osvVulnerabilityAlerts": true,
   "vulnerabilityAlerts": {
     "schedule": ["at any time"],
-    "minimumReleaseAge": "0 days",
+    "minimumReleaseAge": null,
     "automerge": true
   },
   "platformAutomerge": false,
@@ -89,6 +89,7 @@
       "description": "Own collections installed from git: the regex manager handles them",
       "matchManagers": ["ansible-galaxy"],
       "matchPackageNames": ["/^git\\+https://github\\.com/sessrumnir//"],
+      "minimumReleaseAge": "7 days",
       "enabled": false
     },
     {
@@ -96,7 +97,7 @@
       "matchDatasources": ["github-tags"],
       "matchPackageNames": ["sessrumnir/ansible-*"],
       "groupName": "sessrumnir collections",
-      "minimumReleaseAge": "0 days",
+      "minimumReleaseAge": null,
       "schedule": ["at any time"]
     },
     {
@@ -104,12 +105,12 @@
       "matchDatasources": ["docker"],
       "matchPackageNames": ["ghcr.io/sessrumnir/**"],
       "groupName": "sessrumnir images",
-      "minimumReleaseAge": "0 days",
+      "minimumReleaseAge": null,
       "schedule": ["at any time"]
     },
     {
       "matchDepNames": ["sessrumnir/shared-workflows"],
-      "minimumReleaseAge": "0 days",
+      "minimumReleaseAge": null,
       "schedule": ["at any time"]
     },
     {
