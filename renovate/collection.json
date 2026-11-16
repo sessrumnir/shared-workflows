@@ -4,6 +4,17 @@
   "customManagers": [
     {
       "customType": "regex",
+      "description": "Container images in role defaults, one reference pinned by tag and digest",
+      "managerFilePatterns": ["/^roles/[^/]+/defaults/main\\.yml$/"],
+      "matchStrings": [
+        "(?<depName>[a-z0-9-]+(?:\\.[a-z0-9-]+)+(?::[0-9]+)?/[a-z0-9._/-]+):(?<currentValue>[\\w][\\w.-]*)@(?<currentDigest>sha256:[a-f0-9]{64})"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "description": "Old layout of a renovate comment above a digest variable; drop once every collection uses one reference",
       "managerFilePatterns": ["/^roles/[^/]+/defaults/main\\.yml$/"],
       "matchStrings": [
         "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+) currentValue=(?<currentValue>\\S+)\\n\\S+_digest: \"(?<currentDigest>sha256:[a-f0-9]{64})\""
