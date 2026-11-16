@@ -110,6 +110,11 @@ Inputs and secrets are declared at the top of each workflow.
 - `local>sessrumnir/shared-workflows//renovate/default`
 - `local>sessrumnir/shared-workflows//renovate/collection`
 
+The collection preset releases a `galaxy.yml` change as a `fix`. Write each
+dependency range as the tested major in bare majors, `>=14,<15`: minor
+releases leave it alone, and a major update writes `>=15,<16`, while
+`>=14.0.0,<15.0.0` would become `>=15.0.0,<15.1.0`.
+
 `make lint` validates both with `renovate-config-validator --strict
 --no-global`, as repository config, so a broken preset fails here before a
 release instead of stopping Renovate in every repository.

@@ -26,6 +26,12 @@
     {
       "matchFileNames": ["roles/**"],
       "semanticCommitType": "fix"
+    },
+    {
+      "description": "A major moves the galaxy.yml range to the next major (>=14,<15) and releases the collection",
+      "matchManagers": ["ansible-galaxy"],
+      "matchFileNames": ["galaxy.yml"],
+      "semanticCommitType": "fix"
     }
   ]
 }
