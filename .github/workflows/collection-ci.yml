@@ -12,6 +12,7 @@ on:
         default: ""
       python-version:
         type: string
+        # renovate: datasource=docker depName=python
         default: "3.14"
       # ansible-test needs the ansible_collections layout; false for a repository without it.
       sanity:
