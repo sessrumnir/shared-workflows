@@ -122,6 +122,14 @@
       "dependencyDashboardApproval": true
     },
     {
+      "description": "A Python minor is a language release: like a major it waits for approval on the dashboard and is merged by hand",
+      "matchDatasources": ["docker", "github-releases", "github-tags", "python-version"],
+      "matchPackageNames": ["/(^|/)python(-uv)?$/", "actions/python-versions", "python/cpython"],
+      "matchUpdateTypes": ["minor"],
+      "dependencyDashboardApproval": true,
+      "automerge": false
+    },
+    {
       "description": "A shared-workflow bump that cannot start (an action the organization does not allow) creates no check runs, which Renovate takes as green: these are merged by hand",
       "matchDepNames": ["sessrumnir/shared-workflows"],
       "automerge": false
