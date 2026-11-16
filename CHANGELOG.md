@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.32.0](https://github.com/sessrumnir/shared-workflows/compare/v0.31.0...v0.32.0) (2026-11-16)
+
+
+### Features
+
+* **renovate:** release galaxy.yml range changes ([#79](https://github.com/sessrumnir/shared-workflows/issues/79)) ([2e527a3](https://github.com/sessrumnir/shared-workflows/commit/2e527a3361d814a05f5a9b37d1f3208520910988))
+* **renovate:** track any version under a renovate annotation ([#78](https://github.com/sessrumnir/shared-workflows/issues/78)) ([d0c41f5](https://github.com/sessrumnir/shared-workflows/commit/d0c41f5b9be0aa2b6112c8d955d7144cb32ec3ad))
+* **renovate:** track container images pinned as one tag and digest reference ([#77](https://github.com/sessrumnir/shared-workflows/issues/77)) ([533efbc](https://github.com/sessrumnir/shared-workflows/commit/533efbcd0062a942505c73c80736724e614fa9cc))
+
 ## [0.31.0](https://github.com/sessrumnir/shared-workflows/compare/v0.30.0...v0.31.0) (2026-11-13)
 
 
