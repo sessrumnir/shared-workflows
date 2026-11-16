@@ -27,18 +27,18 @@
   "customManagers": [
     {
       "customType": "regex",
-      "description": "Tool versions in Containerfile ARGs, marked by a renovate comment on the line above",
-      "managerFilePatterns": ["/(^|/)(Container|Docker)file$/"],
+      "description": "Any version under a renovate comment: datasource= and depName=, then optionally packageName=, versioning=, extractVersion= and registryUrl= in this order; the next line assigns the version with =, :=, ?= or :",
+      "managerFilePatterns": ["/(^|/|\\.)(Container|Docker)file$/", "/\\.ya?ml$/", "/(^|/)([Mm]akefile|[^/]+\\.mk)$/", "/\\.sh$/"],
       "matchStrings": [
-        "# renovate: datasource=(?<datasource>[a-z-]+) depName=(?<depName>\\S+)\\nARG [A-Z0-9_]+=(?<currentValue>\\S+)"
+        "# renovate: datasource=(?<datasource>[a-z-]+) depName=(?<depName>\\S+)(?: packageName=(?<packageName>\\S+))?(?: versioning=(?<versioning>\\S+))?(?: extractVersion=(?<extractVersion>\\S+))?(?: registryUrl=(?<registryUrl>\\S+))?\\n[^\\n]*?[\\w.-]+\\s*(?::=|\\?=|=|:)\\s*[\"']?(?<currentValue>[^\\s\"':]+)[\"']?\\s"
       ]
     },
     {
       "customType": "regex",
-      "description": "Tool images pinned by version and digest in tools.mk",
-      "managerFilePatterns": ["/(^|/)tools\\.mk$/"],
+      "description": "Images pinned by version and digest in makefiles and shell scripts",
+      "managerFilePatterns": ["/(^|/)([Mm]akefile|[^/]+\\.mk)$/", "/\\.sh$/"],
       "matchStrings": [
-        ":= (?<depName>[a-z0-9.-]+/[a-z0-9._/-]+):(?<currentValue>[0-9][^@\\s]*)@(?<currentDigest>sha256:[a-f0-9]{64})"
+        "(?<depName>[a-z0-9.-]+/[a-z0-9._/-]+):(?<currentValue>[0-9][^@\\s]*)@(?<currentDigest>sha256:[a-f0-9]{64})"
       ],
       "datasourceTemplate": "docker"
     },
@@ -63,8 +63,8 @@
     },
     {
       "customType": "regex",
-      "description": "Molecule platform images pinned by version and digest",
-      "managerFilePatterns": ["/(^|/)molecule/[^/]+/molecule\\.ya?ml$/"],
+      "description": "Molecule platform and test images pinned by version and digest",
+      "managerFilePatterns": ["/(^|/)molecule/[^/]+/molecule\\.ya?ml$/", "/(^|/)molecule/config\\.ya?ml$/"],
       "matchStrings": [
         "image: (?<depName>[a-z0-9.-]+/[a-z0-9._/-]+):(?<currentValue>[0-9][^@\\s]*)@(?<currentDigest>sha256:[a-f0-9]{64})"
       ],
