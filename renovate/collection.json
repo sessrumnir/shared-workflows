@@ -11,15 +11,6 @@
       ],
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker"
-    },
-    {
-      "customType": "regex",
-      "description": "Old layout of a renovate comment above a digest variable; drop once every collection uses one reference",
-      "managerFilePatterns": ["/^roles/[^/]+/defaults/main\\.yml$/"],
-      "matchStrings": [
-        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+) currentValue=(?<currentValue>\\S+)\\n\\S+_digest: \"(?<currentDigest>sha256:[a-f0-9]{64})\""
-      ],
-      "versioningTemplate": "docker"
     }
   ],
   "packageRules": [
