@@ -18,11 +18,12 @@ permissions:
   contents: read
 
 jobs:
-  # Merges the open Release Please pull request when the full suite just passed on the current main
-  # and the pull request changes nothing but release metadata: the squash merge then releases
-  # exactly the tested tree plus the new version. Major releases and breaking changes stay manual:
-  # with bump-minor-pre-major a breaking change before 1.0 is only a minor bump. The App token
-  # merges, so the push to main starts the release workflow.
+  # Merges the open Release Please pull request when the full suite just passed on the current main,
+  # every check of the pull request's head passed, and it changes nothing but release metadata: the
+  # squash merge then releases exactly the tested tree plus the new version. Major releases and
+  # breaking changes stay manual: with bump-minor-pre-major a breaking change before 1.0 is only a
+  # minor bump. The App token reads the checks and merges, so the push to main starts the release
+  # workflow.
   release:
     if: >-
       github.ref == 'refs/heads/main'
@@ -36,6 +37,7 @@ jobs:
         with:
           client-id: ${{ inputs.app-client-id }}
           private-key: ${{ secrets.app-private-key }}
+          permission-checks: read
           permission-contents: write
           permission-pull-requests: write
           permission-workflows: write

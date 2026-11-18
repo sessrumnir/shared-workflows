@@ -59,12 +59,19 @@ files() {
   jq -cn '{files: [$ARGS.positional[] | {filename: .}]}' --args "$@"
 }
 
+# Check runs as name:status:conclusion triples.
+checks() {
+  jq -cn '[$ARGS.positional[] | split(":") | {name: .[0], status: .[1], conclusion: (.[2] | select(. != "") // null)}]
+    | {total_count: length, check_runs: .}' --args "$@" | serve "commits/${head}/check-runs?per_page=100"
+}
+
 # A release from 0.4.1 to 0.5.0 that main, still at the tested commit, is waiting for.
 release() {
   rm -rf "${api}"
   mkdir -p "${api}"
   pr | jq -s . | serve "${pulls}"
   echo "{\"sha\": \"${tested}\"}" | serve commits/main
+  checks lint:completed:success molecule:completed:skipped title:completed:neutral
   files CHANGELOG.md .release-please-manifest.json galaxy.yml | serve "compare/${base}...${head}"
   echo '{".": "0.4.1"}' | serve "contents/.release-please-manifest.json?ref=${tested}"
   echo '{".": "0.5.0"}' | serve "contents/.release-please-manifest.json?ref=${head}"
@@ -109,6 +116,23 @@ check "another branch" "::error::the release pull request does not come from ${r
 release
 echo '{"sha": "4444444444444444444444444444444444444444"}' | serve commits/main
 check "main moved" "::notice::main moved after ${tested} was tested; the next run releases #7." no
+
+release
+checks
+check "no checks" "::error::#7 has no checks on ${head}; merge it by hand once they are green." no
+
+release
+jq -cn '{total_count: 101, check_runs: [range(100) | {name: "x", status: "completed", conclusion: "success"}]}' \
+  | serve "commits/${head}/check-runs?per_page=100"
+check "more checks than one page" "::error::#7 has more than 100 checks; merge it by hand once they are green." no
+
+release
+checks lint:completed:failure molecule:in_progress: title:completed:success build:completed:timed_out
+check "failed checks" "::error::#7 has failed checks: lint, build" no
+
+release
+checks lint:completed:success molecule:queued:
+check "checks still running" "::notice::the checks of #7 are still running; the next run releases it." no
 
 release
 files CHANGELOG.md roles/x/tasks/main.yml plugins/x.py | serve "compare/${base}...${head}"

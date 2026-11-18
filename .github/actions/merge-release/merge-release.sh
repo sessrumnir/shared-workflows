@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Merges the open Release Please pull request of REPO when main is still TESTED and the pull request
-# changes only release metadata within one major version and lists no breaking change.
+# Merges the open Release Please pull request of REPO when main is still TESTED, every check of the
+# pull request's head passed, and it changes only release metadata within one major version and
+# lists no breaking change.
 set -euo pipefail
 
 api() {
@@ -29,6 +30,25 @@ head=$(jq -r .head.sha <<< "${pr}")
 
 if [ "$(api commits/main | jq -r .sha)" != "${TESTED}" ]; then
   echo "::notice::main moved after ${TESTED} was tested; the next run releases #${number}."
+  exit 0
+fi
+checks=$(api "commits/${head}/check-runs?per_page=100")
+total=$(jq .total_count <<< "${checks}")
+if [ "${total}" -eq 0 ]; then
+  echo "::error::#${number} has no checks on ${head}; merge it by hand once they are green."
+  exit 1
+fi
+if [ "${total}" -gt "$(jq '.check_runs | length' <<< "${checks}")" ]; then
+  echo "::error::#${number} has more than 100 checks; merge it by hand once they are green."
+  exit 1
+fi
+red=$(jq -r '.check_runs[] | select(.status == "completed" and (.conclusion | IN("success", "neutral", "skipped") | not)) | .name' <<< "${checks}")
+if [ -n "${red}" ]; then
+  echo "::error::#${number} has failed checks: ${red//$'\n'/, }"
+  exit 1
+fi
+if jq -e 'any(.check_runs[]; .status != "completed")' <<< "${checks}" > /dev/null; then
+  echo "::notice::the checks of #${number} are still running; the next run releases it."
   exit 0
 fi
 compare=$(api "compare/${base}...${head}")
