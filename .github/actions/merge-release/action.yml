@@ -1,6 +1,6 @@
 ---
 name: merge-release
-description: Squash-merge the open Release Please pull request when it releases exactly the tested main
+description: Squash-merge the open Release Please pull request when its checks passed and it releases exactly the tested main
 inputs:
   token:
     description: Token that may merge the pull request
