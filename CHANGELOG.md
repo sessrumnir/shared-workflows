@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.32.2](https://github.com/sessrumnir/shared-workflows/compare/v0.32.1...v0.32.2) (2026-11-19)
+
+
+### Bug Fixes
+
+* **actions:** pin the devops tool images with a shell userland ([#87](https://github.com/sessrumnir/shared-workflows/issues/87)) ([d5f18b0](https://github.com/sessrumnir/shared-workflows/commit/d5f18b0f3ace331a8ffd9f7609253ebd26ada87c))
+
 ## [0.32.1](https://github.com/sessrumnir/shared-workflows/compare/v0.32.0...v0.32.1) (2026-11-19)
 
 
