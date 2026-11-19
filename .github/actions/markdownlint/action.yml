@@ -4,7 +4,9 @@ description: markdownlint over every Markdown file but the changelog
 runs:
   using: docker
   image: docker://ghcr.io/sessrumnir/markdownlint:0.50.0@sha256:d19d606438436c4a3ec3d98762b0020a8857f0bbadeb43caaa42fd10c663cee4
+  entrypoint: /nodejs/bin/node
   args:
+    - "/opt/markdownlint/node_modules/markdownlint-cli/markdownlint.js"
     - "--dot"
     - "--ignore"
     - ".git"

@@ -59,9 +59,11 @@ repositories.
   caller grants `packages: read`, `issues: write` and `actions: read`.
 - `lint.yml`: the common checks, each a container action under
   `.github/actions/` with a pinned tool image and no network or Docker
-  daemon needed: file hygiene, actionlint, gitleaks, the Renovate config
-  validator and markdownlint, then optionally hadolint on the root
-  `Containerfile`, checkov, trivy and lychee's link check (`lychee: true`,
+  daemon needed. Each action names its `entrypoint:` and passes literal
+  arguments with no shell syntax, as ARC's `kubernetes-novolume` mode needs;
+  a step writes no outputs and nothing to the workspace. The checks: file
+  hygiene, actionlint, gitleaks, the Renovate config validator and
+  markdownlint, then optionally hadolint on the root `Containerfile`, checkov, trivy and lychee's link check (`lychee: true`,
   configured by the repository's `.lychee.toml`, offline there).
   `lychee-online-config` names a second config with `offline = false`; a
   `links` job on a runner with network then checks the external links too,

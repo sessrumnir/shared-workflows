@@ -4,20 +4,41 @@ description: merge conflict markers, YAML syntax, final newlines and trailing wh
 runs:
   using: docker
   image: docker://ghcr.io/sessrumnir/pre-commit-hooks:6.0.0@sha256:55a8be5ff34b35ccca6ac8e6fb746d32fbf36afe024620b7a9c39369e489d5e2
-  entrypoint: sh
+  entrypoint: /usr/local/bin/python3
   env:
     GIT_CONFIG_COUNT: "1"
     GIT_CONFIG_KEY_0: safe.directory
     GIT_CONFIG_VALUE_0: "*"
+    CHECK_FILES: |
+      import os
+      import shutil
+      import subprocess
+      import tempfile
+
+      from pre_commit_hooks import check_merge_conflict, check_yaml, end_of_file_fixer, trailing_whitespace_fixer
+
+      found = subprocess.run(
+          ['find', '.', '-path', './.git', '-prune', '-o', '-type', 'f', '-exec', 'grep', '-IlZ', '', '{}', '+'],
+          stdout=subprocess.PIPE,
+          check=False,
+      )
+      text = os.fsdecode(found.stdout).split('\0')[:-1]
+      if found.returncode and not text:
+          raise SystemExit(found.returncode)
+      yaml = [path for path in text if path.endswith(('.yml', '.yaml'))]
+      fixable = [path for path in text if '/testdata/' not in path]
+
+      copy = tempfile.mkdtemp()
+      for path in fixable:
+          os.makedirs(os.path.join(copy, os.path.dirname(path)), exist_ok=True)
+          shutil.copy(path, os.path.join(copy, path))
+
+      failed = check_merge_conflict.main(['--assume-in-merge', *text])
+      failed |= check_yaml.main(['--allow-multiple-documents', *yaml])
+      os.chdir(copy)
+      failed |= end_of_file_fixer.main(fixable)
+      failed |= trailing_whitespace_fixer.main(fixable)
+      raise SystemExit(failed)
   args:
-    - "-euc"
-    - |
-      list=$(mktemp)
-      find . -path ./.git -prune -o -type f -exec grep -IlZ '' {} + > "${list}" || [ -s "${list}" ]
-      xargs -0 -r check-merge-conflict --assume-in-merge < "${list}"
-      grep -zE '\.ya?ml$' "${list}" | xargs -0 -r check-yaml --allow-multiple-documents
-      copy=$(mktemp -d)
-      grep -zv '/testdata/' "${list}" | xargs -0 -r cp --parents -t "${copy}"
-      cd "${copy}"
-      find . -type f -print0 | xargs -0 -r end-of-file-fixer
-      find . -type f -print0 | xargs -0 -r trailing-whitespace-fixer
+    - "-c"
+    - "import os; exec(os.environ['CHECK_FILES'])"
