@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.32.3](https://github.com/sessrumnir/shared-workflows/compare/v0.32.2...v0.32.3) (2026-11-19)
+
+
+### Bug Fixes
+
+* **hooks:** lint the pushed commit in a temporary worktree, scan the … ([#90](https://github.com/sessrumnir/shared-workflows/issues/90)) ([c60cfc1](https://github.com/sessrumnir/shared-workflows/commit/c60cfc1599834176627bcac0cadf1073d2fe3a2a))
+
 ## [0.32.2](https://github.com/sessrumnir/shared-workflows/compare/v0.32.1...v0.32.2) (2026-11-19)
 
 
