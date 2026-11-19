@@ -1,5 +1,8 @@
 include tools.mk
 
+SHELL := bash
+.SHELLFLAGS := -o pipefail -c
+
 # Every tool runs in its own container: no network, no capabilities, as the caller's user. Checks
 # see the repository read-only; only the whitespace and end-of-file fixers may write to it.
 SANDBOX := docker run --rm --network none --read-only --tmpfs /tmp --cap-drop ALL \
@@ -33,7 +36,11 @@ scripts:
 	$(CHECK) --entrypoint /usr/local/bin/shellcheck $(ACTIONLINT) $(SCRIPTS)
 
 secrets:
+ifdef PUSHED
+	git log --patch --unified=0 --no-ext-diff $(PUSHED) --not --remotes | $(CHECK) --interactive $(GITLEAKS) stdin --redact --no-banner
+else
 	$(CHECK) $(GITLEAKS) dir --redact --no-banner .
+endif
 
 renovate:
 	$(CHECK) $(RENOVATE_CONFIG_VALIDATOR) --strict --no-global $(RENOVATE)
@@ -44,6 +51,6 @@ markdown:
 test:
 	set -e; for test in tests/*-test.sh; do $$test; done
 
-# Runs make lint before every push.
+# Runs make lint on every pushed commit, in a temporary worktree, before the push.
 hooks:
 	git config core.hooksPath .githooks

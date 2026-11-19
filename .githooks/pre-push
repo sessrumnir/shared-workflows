@@ -1,3 +1,11 @@
 #!/bin/sh
 for var in $(git rev-parse --local-env-vars); do unset "$var"; done
-exec make lint
+tree=$(mktemp -d)
+trap 'git worktree remove --force "$tree" 2>/dev/null; rm -rf "$tree"' EXIT
+trap 'exit 130' INT TERM
+while read -r _ local_oid _ _; do
+	case $local_oid in *[!0]*) ;; *) continue ;; esac
+	git worktree add --quiet --detach "$tree" "$local_oid" || exit
+	make -C "$tree" lint PUSHED="$local_oid" </dev/null || exit
+	git worktree remove --force "$tree"
+done
