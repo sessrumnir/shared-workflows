@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.32.1](https://github.com/sessrumnir/shared-workflows/compare/v0.32.0...v0.32.1) (2026-11-19)
+
+
+### Bug Fixes
+
+* **actions:** an explicit entrypoint in every container action, files without shell in its args ([#86](https://github.com/sessrumnir/shared-workflows/issues/86)) ([fcb3a62](https://github.com/sessrumnir/shared-workflows/commit/fcb3a623968bd846c4e8ea4cd4ba36ff7c3810b5)), closes [#84](https://github.com/sessrumnir/shared-workflows/issues/84)
+* **collection-train:** merge a release only when its own checks passed ([#82](https://github.com/sessrumnir/shared-workflows/issues/82)) ([5ae95f6](https://github.com/sessrumnir/shared-workflows/commit/5ae95f663a5015f18eb6d89e19994135c97fecd6))
+* **hooks:** clear the repo-local git variables and lint new files ([#85](https://github.com/sessrumnir/shared-workflows/issues/85)) ([d3466e6](https://github.com/sessrumnir/shared-workflows/commit/d3466e615c2dc47177a5baaab16c1933fbdf2af3))
+
 ## [0.32.0](https://github.com/sessrumnir/shared-workflows/compare/v0.31.0...v0.32.0) (2026-11-16)
 
 
