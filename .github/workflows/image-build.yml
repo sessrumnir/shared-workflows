@@ -124,7 +124,7 @@ jobs:
       matrix:
         image: ${{ fromJSON(needs.changes.outputs.images) }}
     env:
-      HADOLINT: ghcr.io/${{ github.repository_owner }}/hadolint:2.15.1@sha256:99ca76978300d1e0d13593baf3b5e821d76afcc1dc6d21515f8982cd30e562ac
+      HADOLINT: ghcr.io/${{ github.repository_owner }}/hadolint:2.15.1@sha256:885bc2912d5a8b39632328017e4480a4e238df05d8365a11bb4d1fb7fa546f2c
       TRIVY: ghcr.io/${{ github.repository_owner }}/trivy:0.76.2@sha256:453ada62e59aaec9e3952563f03d1c868242c83a794bafb0989c8dc8f1e5bd03
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
