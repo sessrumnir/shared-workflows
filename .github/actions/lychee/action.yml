@@ -13,6 +13,7 @@ inputs:
 runs:
   using: docker
   image: docker://ghcr.io/sessrumnir/lychee:0.24.2@sha256:42e94541cadc1b3094fcf8b3f9992ad976804b6e0bdcae73dd370cd8263b0cc7
+  entrypoint: /usr/local/bin/lychee
   args:
     - "--no-progress"
     - "--config"

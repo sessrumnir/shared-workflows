@@ -4,6 +4,7 @@ description: checkov over the checkout
 runs:
   using: docker
   image: docker://ghcr.io/sessrumnir/checkov:3.3.27@sha256:75140b757f5559b11354ebb868d8013df2cc11d544534f2753c1e4b8974e4c6d
+  entrypoint: /usr/local/bin/checkov
   args:
     - "--directory"
     - "."

@@ -4,6 +4,7 @@ description: hadolint over the root Containerfile
 runs:
   using: docker
   image: docker://ghcr.io/sessrumnir/hadolint:2.15.1@sha256:99ca76978300d1e0d13593baf3b5e821d76afcc1dc6d21515f8982cd30e562ac
+  entrypoint: /usr/local/bin/hadolint
   args:
     - "--config"
     - ".hadolint.yaml"
