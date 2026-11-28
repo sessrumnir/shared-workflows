@@ -3,7 +3,7 @@ name: markdownlint
 description: markdownlint over every Markdown file but the changelog
 runs:
   using: docker
-  image: docker://ghcr.io/sessrumnir/markdownlint:0.50.0@sha256:1f0ff34843ef2d2c179a501306e8b31067eecc1755bdb2d7dcae66374aca83e7
+  image: docker://ghcr.io/sessrumnir/markdownlint:0.50.0@sha256:f268d90e064e57f09c51398fbf137569c7fcd4c88d3d0642fd5e49311976ac4a
   entrypoint: /nodejs/bin/node
   args:
     - "/opt/markdownlint/node_modules/markdownlint-cli/markdownlint.js"
